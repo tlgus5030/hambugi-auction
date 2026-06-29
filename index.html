@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>햄부기햄스터 경매 내전</title>
+    <title>햄부기햄스터 경매 프로그램 (팀장 패널 레이아웃 확장 완료)</title>
     <style>
         body {
             font-family: 'Malgun Gothic', sans-serif;
@@ -17,17 +17,43 @@
         }
         
         /* 뷰어 제어 시스템 (라우팅) */
-        .view-section { display: none; width: 100%; height: 100%; gap: 15px; box-sizing: border-box; }
+        .view-section { display: none; width: 100%; height: 100%; flex-direction: column; gap: 15px; box-sizing: border-box; }
         body[data-view="broadcast"] #broadcast-view { display: flex; }
         body[data-view="admin"] #admin-view { display: flex; }
         body[data-view="director"] #director-view { display: flex; }
 
-        /* 전체 4단 분할 및 레이아웃 시스템 */
+        /* 상단 네비게이션 바 스타일 */
+        .nav-bar {
+            display: flex;
+            align-items: center;
+            background-color: #111c2e;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 1px solid #1e2d4a;
+            margin-bottom: -5px;
+        }
+        .btn-home {
+            background-color: #334155;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-home:hover { background-color: #475569; }
+
+        /* 전체 3단 분할 및 레이아웃 시스템 */
         .layout-container {
             display: flex;
             width: 100%;
-            height: 100%;
+            flex: 1;
             gap: 15px;
+            overflow: hidden;
         }
 
         /* [1구역] 팀 목록 존 (좌측) */
@@ -334,8 +360,8 @@
         .admin-section { background-color: #111827; padding: 8px; border-radius: 6px; border: 1px solid #334155;}
         .admin-section h3 { margin-top: 0; margin-bottom: 6px; font-size: 12px; color: #94a3b8; }
         
-        .admin-section input, .admin-section select, .admin-section button { width: 100%; padding: 6px; box-sizing: border-box; font-size: 12px; border-radius: 4px; border: none; }
-        .admin-section input, .admin-section select { background-color: #0f172a; color: white; border: 1px solid #334155; }
+        .admin-section input, .admin-section select, .admin-section button, .admin-section textarea { width: 100%; padding: 6px; box-sizing: border-box; font-size: 12px; border-radius: 4px; border: none; }
+        .admin-section input, .admin-section select, .admin-section textarea { background-color: #0f172a; color: white; border: 1px solid #334155; }
         .admin-section button { background-color: #2563eb; color: white; font-weight: bold; cursor: pointer; }
         .btn-start { background-color: #16a34a; }
         .btn-danger { background-color: #dc2626; }
@@ -343,6 +369,7 @@
         
         .setting-table { width: 100%; margin-bottom: 4px; border-collapse: collapse; }
         .setting-table th { font-size: 11px; color:#94a3b8; padding-bottom:2px; text-align:left; }
+        .setting-table td { padding: 3px 0; }
         .setting-table input { padding: 4px; font-size: 11px; }
 
         #lobby { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; gap: 12px; padding: 40px 10px; }
@@ -354,25 +381,31 @@
 </head>
 <body>
 
+    <!-- 🚪 0. 초기 주소 로비 화면 -->
     <div id="lobby" style="display: none;">
         <h1 style="color:#3b82f6; margin-bottom: 0px;">🍔 햄부기햄스터 경매 시스템</h1>
         <p style="color:#64748b; margin-bottom: 15px;">원하는 모드를 선택하세요. 모든 브라우저 탭은 실시간 연동됩니다.</p>
-        <button class="lobby-btn" style="background-color:#16a34a;" onclick="location.hash='admin'; location.reload();">🛠️ 1. 메인 통합 제어 화면 <span>열기 ▶</span></button>
-        <button class="lobby-btn" style="background-color:#eab308; color:black;" onclick="location.hash='broadcast'; location.reload();">📺 2. 디코 방송 송출 전용 창 <span>열기 ▶</span></button>
+        <button class="lobby-btn" style="background-color:#16a34a;" onclick="goPage('admin')">🛠️ 1. 메인 통합 제어 화면 <span>열기 ▶</span></button>
+        <button class="lobby-btn" style="background-color:#eab308; color:black;" onclick="goPage('broadcast')">📺 2. 디코 방송 송출 전용 창 <span>열기 ▶</span></button>
         
         <div style="width: 340px; border-top: 1px solid #1e293b; margin: 10px 0; padding-top: 10px;">
             <p style="font-size: 13px; color: #94a3b8; margin: 0 0 8px 0; font-weight: bold;">👥 3. 각 팀장 전용 독립 입찰 링크 패널</p>
             <div class="dir-grid">
-                <button style="background-color:#1c3d27;" onclick="location.hash='dir0'; location.reload();">💚 팀장 A 패널</button>
-                <button style="background-color:#1d3557;" onclick="location.hash='dir1'; location.reload();">💙 팀장 B 패널</button>
-                <button style="background-color:#3d1c5c;" onclick="location.hash='dir2'; location.reload();">💜 팀장 C 패널</button>
-                <button style="background-color:#5c311c;" onclick="location.hash='dir3'; location.reload();">🧡 팀장 D 패널</button>
+                <button style="background-color:#1c3d27;" onclick="goPage('dir0')">💚 팀장 A 패널</button>
+                <button style="background-color:#1d3557;" onclick="goPage('dir1')">💙 팀장 B 패널</button>
+                <button style="background-color:#3d1c5c;" onclick="goPage('dir2')">💜 팀장 C 패널</button>
+                <button style="background-color:#5c311c;" onclick="goPage('dir3')">🧡 팀장 D 패널</button>
             </div>
         </div>
         <button class="lobby-btn" style="background-color:#334155; width:340px; font-size:12px; margin-top:20px;" onclick="resetAllData()">🔄 데이터 전체 포맷 초기화</button>
     </div>
 
+    <!-- 📺 1. 방송 송출 전용 뷰 (#broadcast) -->
     <div id="broadcast-view" class="view-section">
+        <div class="nav-bar">
+            <button class="btn-home" onclick="goPage('')">🏠 메인 로비로 이동</button>
+            <span style="margin-left:15px; font-size:13px; font-weight:bold; color:#eab308;">📺 디코 방송 송출 전용 모드</span>
+        </div>
         <div class="layout-container">
             <div class="team-zone" id="main-director-list"></div>
             <div class="auction-zone">
@@ -383,7 +416,7 @@
                         <span class="active-item-name" id="main-active-name">대기 중</span>
                     </div>
                 </div>
-                <div class="log-box" id="main-log-box">------------ 다음 경매 대기중 ------------</div>
+                <div class="log-box" id="main-log-box">------------- 다음 경매 대기중 -------------</div>
                 <div class="time-count" id="main-timer-display">TIME COUNT | 15.00</div>
             </div>
             <div class="list-zone">
@@ -399,7 +432,12 @@
         </div>
     </div>
 
+    <!-- 🛠️ 2. 관리자 통합 컨트롤러 제어 뷰 (#admin) -->
     <div id="admin-view" class="view-section">
+        <div class="nav-bar">
+            <button class="btn-home" onclick="goPage('')">🏠 메인 로비로 이동</button>
+            <span style="margin-left:15px; font-size:13px; font-weight:bold; color:#3b82f6;">🛠️ 메인 통합 제어 컨트롤러 모드</span>
+        </div>
         <div class="layout-container">
             <div class="team-zone" id="admin-director-list"></div>
             <div class="auction-zone">
@@ -410,7 +448,7 @@
                         <span class="active-item-name" id="admin-active-name">대기 중</span>
                     </div>
                 </div>
-                <div class="log-box" id="admin-log-box">------------ 다음 경매 대기중 ------------</div>
+                <div class="log-box" id="admin-log-box">------------- 다음 경매 대기중 -------------</div>
                 <div class="time-count" id="admin-timer-display">TIME COUNT | 15.00</div>
                 <div class="gosegu-bid-panel">
                     <div style="display:flex; gap: 8px; align-items:center;">
@@ -445,29 +483,35 @@
             <div class="admin-zone">
                 <h2>🛠️ 제어 컨트롤 패널</h2>
                 <div class="admin-section">
-                    <h3>👥 1. 팀장명 및 설정 수정</h3>
+                    <h3>👥 1. 팀장명, 초기 포인트, 프로필 설정</h3>
                     <table class="setting-table">
-                        <thead><tr><th>구분</th><th>팀장 이름</th><th>이미지 URL</th></tr></thead>
+                        <thead><tr><th>구분</th><th>팀장 이름</th><th>포인트</th><th>프로필 URL (옵션)</th></tr></thead>
                         <tbody>
-                            <tr><td>#A</td><td><input type="text" id="dir-name-0" value="감독A" oninput="syncAdminSettings()"></td><td><input type="text" id="dir-img-0" value="https://api.dicebear.com/7.x/adventurer/svg?seed=A" oninput="syncAdminSettings()"></td></tr>
-                            <tr><td>#B</td><td><input type="text" id="dir-name-1" value="감독B" oninput="syncAdminSettings()"></td><td><input type="text" id="dir-img-1" value="https://api.dicebear.com/7.x/adventurer/svg?seed=B" oninput="syncAdminSettings()"></td></tr>
-                            <tr><td>#C</td><td><input type="text" id="dir-name-2" value="감독C" oninput="syncAdminSettings()"></td><td><input type="text" id="dir-img-2" value="https://api.dicebear.com/7.x/adventurer/svg?seed=C" oninput="syncAdminSettings()"></td></tr>
-                            <tr><td>#D</td><td><input type="text" id="dir-name-3" value="감독D" oninput="syncAdminSettings()"></td><td><input type="text" id="dir-img-3" value="https://api.dicebear.com/7.x/adventurer/svg?seed=D" oninput="syncAdminSettings()"></td></tr>
+                            <tr><td>#A</td><td><input type="text" id="dir-name-0" value="감독A" oninput="syncAdminSettings()"></td><td><input type="number" id="dir-pt-0" value="1000" oninput="syncAdminSettings()"></td><td><input type="text" id="dir-img-0" placeholder="기본 이미지" oninput="syncAdminSettings()"></td></tr>
+                            <tr><td>#B</td><td><input type="text" id="dir-name-1" value="감독B" oninput="syncAdminSettings()"></td><td><input type="number" id="dir-pt-1" value="1000" oninput="syncAdminSettings()"></td><td><input type="text" id="dir-img-1" placeholder="기본 이미지" oninput="syncAdminSettings()"></td></tr>
+                            <tr><td>#C</td><td><input type="text" id="dir-name-2" value="감독C" oninput="syncAdminSettings()"></td><td><input type="number" id="dir-pt-2" value="1000" oninput="syncAdminSettings()"></td><td><input type="text" id="dir-img-2" placeholder="기본 이미지" oninput="syncAdminSettings()"></td></tr>
+                            <tr><td>#D</td><td><input type="text" id="dir-name-3" value="감독D" oninput="syncAdminSettings()"></td><td><input type="number" id="dir-pt-3" value="1000" oninput="syncAdminSettings()"></td><td><input type="text" id="dir-img-3" placeholder="기본 이미지" oninput="syncAdminSettings()"></td></tr>
                         </tbody>
                     </table>
                 </div>
                 <div class="admin-section">
                     <h3>📦 2. 사전 매물 추가 보관함</h3>
-                    <div style="display:flex; flex-direction:column; gap:4px;">
+                    <div style="display:flex; flex-direction:column; gap:4px; margin-bottom: 8px;">
+                        <span style="font-size:10px; color:#a855f7;">[개별 등록]</span>
                         <input type="text" id="reg-player-name" placeholder="매물 이름 (예: 플레이어 이름)">
                         <input type="text" id="reg-player-img" placeholder="이미지 주소 (비워둘 시 자동 생성)">
-                        <button style="background-color: #3b82f6; color:white; font-weight:bold;" onclick="addNewPlayerToPool()">➕ 매물 명단에 등록</button>
+                        <button style="background-color: #3b82f6; color:white; font-weight:bold;" onclick="addNewPlayerToPool()">➕ 단일 매물 등록</button>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:4px; border-top: 1px solid #2d3f5d; padding-top: 6px;">
+                        <span style="font-size:10px; color:#eab308;">[여러 명 대량 일괄 등록 - 이름, 이미지주소]</span>
+                        <textarea id="reg-bulk-names" rows="3" placeholder="이름, 이미지주소 (엔터로 구분)&#10;예시:&#10;홍길동, https://imgur.com/abc.png&#10;이순신&#10;김유신, https://imgur.com/xyz.jpg" style="resize:vertical; font-family:inherit; font-size:11px; padding:4px;"></textarea>
+                        <button style="background-color: #eab308; color:black; font-weight:bold;" onclick="addBulkPlayersToPool()">⚡ 여러 명 일괄 등록</button>
                     </div>
                 </div>
                 <div class="admin-section">
                     <h3>🔥 3. 경매 작동 시스템</h3>
                     <div style="display:flex; flex-direction:column; gap:5px;">
-                        <button class="btn-shuffle" onclick="shufflePlayerPool()">🎲 4구역 연동: 매물 무작위 셔플</button>
+                        <button class="btn-shuffle" onclick="shufflePlayerPool()">🎲 매물 무작위 셔플</button>
                         <button class="btn-start" onclick="triggerSequence()">⚡ 선택된 매물 카운트다운 시작</button>
                     </div>
                 </div>
@@ -475,39 +519,62 @@
                     <button class="btn-danger" onclick="closeAuction()">🔨 낙찰 확정</button>
                     <button style="background-color: #64748b; color:white;" onclick="failAuction()">❌ 유찰 처리</button>
                 </div>
+                <div class="admin-section" style="border-color:#7f1d1d;">
+                    <h3>🚨 4. 초기화 위험 구역</h3>
+                    <button class="btn-danger" style="background-color:#991b1b; padding:8px;" onclick="clearAllPlayersOnly()">⚠️ 등록된 전체 매물 삭제</button>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- 👥 3. 팀장 전용 개별 패널 뷰 (#dir0, #dir1, #dir2, #dir3) -> 3단 와이드형으로 구조 변경 완료 -->
     <div id="director-view" class="view-section">
-        <div class="layout-container" style="justify-content: center; align-items: center;">
-            <div style="width:100%; max-width:460px; display:flex; flex-direction:column; gap:12px; height:100%;">
-                <div id="my-team-card-zone"></div>
-                <div class="auction-zone" style="flex:none; height:auto;">
-                    <div class="active-item-panel">
-                        <div class="active-item-avatar" id="dir-active-img"></div>
-                        <div class="active-item-info">
-                            <span class="active-item-label">CURRENT AUCTION</span>
-                            <span class="active-item-name" id="dir-active-name">대기 중</span>
-                        </div>
-                    </div>
-                    <div class="time-count" id="dir-timer-display" style="font-size:18px; padding:6px;">15.00</div>
-                    <div class="gosegu-bid-panel">
-                        <div class="gosegu-row-bg" style="font-size:13px;">💰 나의 잔여 포인트 | <span id="dir-my-points">0</span></div>
-                        <div class="gosegu-row-bg" style="background:#1e1b4b; font-size:13px;">현재 최고 입찰가 | <span id="dir-highest-price" style="color:#f59e0b;">0</span></div>
-                        <div class="gosegu-btn-grid">
-                            <button onclick="dirAddPrice(5)">+5</button>
-                            <button onclick="dirAddPrice(10)">+10</button>
-                            <button onclick="dirAddPrice(50)">+50</button>
-                            <button onclick="dirAddPrice(100)">+100</button>
-                        </div>
-                        <div class="gosegu-submit-row">
-                            <input type="number" id="dir-custom-input" value="0">
-                            <button class="gosegu-btn-submit" style="background:#10b981;" onclick="goseguSubmitBid('director')">입찰하기</button>
-                        </div>
+        <div class="nav-bar">
+            <button class="btn-home" onclick="goPage('')">🏠 메인 로비로 이동</button>
+            <span id="dir-panel-header-title" style="margin-left:15px; font-size:13px; font-weight:bold; color:#4ade80;">👥 팀장 전용 입찰 패널</span>
+        </div>
+        <div class="layout-container">
+            <!-- [1구역] 전체 팀 상황판 공유 (좌측) -->
+            <div class="team-zone" id="dir-all-teams-list"></div>
+            
+            <!-- [2구역] 본인 전용 실시간 경매 및 입찰 (중앙) -->
+            <div class="auction-zone">
+                <div class="active-item-panel">
+                    <div class="active-item-avatar" id="dir-active-img" style="background-image:url('https://api.dicebear.com/7.x/bottts/svg?seed=ready')"></div>
+                    <div class="active-item-info">
+                        <span class="active-item-label">CURRENT AUCTION PLAYER</span>
+                        <span class="active-item-name" id="dir-active-name">대기 중</span>
                     </div>
                 </div>
-                <div class="log-box" id="dir-log-box" style="flex:1;"></div>
+                <div class="log-box" id="dir-log-box">------------- 다음 경매 대기중 -------------</div>
+                <div class="time-count" id="dir-timer-display">TIME COUNT | 15.00</div>
+                
+                <div class="gosegu-bid-panel">
+                    <div class="gosegu-row-bg">💰 나의 잔여 포인트 | <span id="dir-my-points">0</span></div>
+                    <div class="gosegu-price-window" id="dir-highest-price">0</div>
+                    <div class="gosegu-btn-grid">
+                        <button onclick="dirAddPrice(5)">+5</button>
+                        <button onclick="dirAddPrice(10)">+10</button>
+                        <button onclick="dirAddPrice(50)">+50</button>
+                        <button onclick="dirAddPrice(100)">+100</button>
+                    </div>
+                    <div class="gosegu-submit-row">
+                        <input type="number" id="dir-custom-input" value="0">
+                        <button class="gosegu-btn-submit" style="background-color:#16a34a;" onclick="goseguSubmitBid('director')">입찰하기</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- [3구역] 실시간 매물 현황 공유 (우측) -->
+            <div class="list-zone">
+                <div class="list-section">
+                    <h3>📋 전체 등록 매물 리스트</h3>
+                    <div class="visual-grid" id="dir-player-list"></div>
+                </div>
+                <div class="list-section">
+                    <h3>❌ 유찰된 매물 목록</h3>
+                    <div class="visual-grid" id="dir-fail-list"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -536,9 +603,13 @@
         let currentRole = ""; 
         let currentDirKey = ""; 
         let lastPlayedTriggerTime = 0;
-        let lastSecondsInt = 15; // 5초 이하 초읽기 중복 재생 방지용 변수
+        let lastSecondsInt = 15;
 
-        // 🎵 Web Audio API 소리 발생 시스템
+        function goPage(hash) {
+            location.hash = hash;
+            location.reload();
+        }
+
         function playTone(type) {
             try {
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -546,7 +617,6 @@
                 const ctx = new AudioContext();
                 
                 if (type === 'ready_tick') {
-                    // ⏳ 준비 카운트다운 소리 (낮고 둔탁한 틱)
                     const osc = ctx.createOscillator();
                     const gain = ctx.createGain();
                     osc.type = 'sine';
@@ -557,7 +627,6 @@
                     osc.start(); osc.stop(ctx.currentTime + 0.08);
                 }
                 else if (type === 'start') {
-                    // 🔔 본경매 시작 벨소리 (복합 주파수 링 공)
                     [440, 554.37, 659.25].forEach((freq) => {
                         const osc = ctx.createOscillator();
                         const gain = ctx.createGain();
@@ -570,7 +639,6 @@
                     });
                 }
                 else if (type === 'warn_tick') {
-                    // 🚨 5초 이하 본경매 마감 임박 알림음 (날카로운 높은 알림)
                     const osc = ctx.createOscillator();
                     const gain = ctx.createGain();
                     osc.type = 'sine';
@@ -632,7 +700,10 @@
                 document.body.setAttribute('data-view', 'admin');
                 for(let i=0; i<4; i++){
                     document.getElementById(`dir-name-${i}`).value = db.directors[`dir${i}`].name;
-                    document.getElementById(`dir-img-${i}`).value = db.directors[`dir${i}`].img;
+                    document.getElementById(`dir-pt-${i}`).value = db.directors[`dir${i}`].points;
+                    const currentImg = db.directors[`dir${i}`].img;
+                    const defaultImg = defaultDb.directors[`dir${i}`].img;
+                    document.getElementById(`dir-img-${i}`).value = (currentImg === defaultImg) ? "" : currentImg;
                 }
                 syncAdminSettings();
             } else if(hash === "broadcast") {
@@ -653,7 +724,6 @@
                 }
             });
 
-            // ⏱️ 초고속 드라이버 클록 가동 (20ms)
             setInterval(() => {
                 loadStorage();
                 
@@ -662,7 +732,6 @@
                     lastPlayedTriggerTime = db.soundTrigger.time;
                 }
 
-                // 본경매 5초 이하 마감 임박 사운드 체커 (매 초 정각에 동기화 재생)
                 if (db.timeLeft > 0 && db.timeLeft <= 5.05) {
                     let currentSecInt = Math.ceil(db.timeLeft);
                     if (currentSecInt !== lastSecondsInt && currentSecInt > 0) {
@@ -670,7 +739,7 @@
                         lastSecondsInt = currentSecInt;
                     }
                 } else if (db.timeLeft > 5.05 || db.timeLeft <= 0) {
-                    lastSecondsInt = 15; // 롤백 초기화
+                    lastSecondsInt = 15;
                 }
 
                 if(currentRole === "broadcast") {
@@ -707,7 +776,9 @@
             if(currentRole !== "admin") return;
             for(let i=0; i<4; i++){
                 db.directors[`dir${i}`].name = document.getElementById(`dir-name-${i}`).value || `감독${String.fromCharCode(65+i)}`;
-                db.directors[`dir${i}`].img = document.getElementById(`dir-img-${i}`).value;
+                db.directors[`dir${i}`].points = parseInt(document.getElementById(`dir-pt-${i}`).value) || 0;
+                const imgVal = document.getElementById(`dir-img-${i}`).value.trim();
+                db.directors[`dir${i}`].img = imgVal ? imgVal : defaultDb.directors[`dir${i}`].img;
             }
             saveStorage(); rebuildSelect(); renderAllStatic();
         }
@@ -722,12 +793,14 @@
         }
 
         function updateActiveDirectorPoints() {
-            const key = document.getElementById('active-director-select').value;
+            const select = document.getElementById('active-director-select');
+            if(!select) return;
+            const key = select.value;
             if(key && db.directors[key]) { document.getElementById('gosegu-my-points').innerText = db.directors[key].points; }
         }
 
         function renderAllStatic() {
-            const targets = ['main-director-list', 'admin-director-list'];
+            const targets = ['main-director-list', 'admin-director-list', 'dir-all-teams-list'];
             targets.forEach(id => {
                 const container = document.getElementById(id);
                 if(!container) return;
@@ -742,10 +815,15 @@
                         squadHtml += m ? `<div class="member-slot"><div class="member-photo filled" style="background-image:url('${m.img}')"></div><div class="member-name">${m.name}</div></div>`
                                        : `<div class="member-slot"><div class="member-photo">${s}</div><div class="member-name">-</div></div>`;
                     });
+
+                    // 팀장 패널 좌측 리스트 노출 시 본인 팀 강조 표시 효과 추가
+                    const isMyCard = (id === 'dir-all-teams-list' && key === currentDirKey) ? 'style="border: 2px solid #4ade80; background-color: #14233c;"' : '';
+                    const myBadge = (id === 'dir-all-teams-list' && key === currentDirKey) ? '<span style="font-size:11px; background:#16a34a; padding:1px 5px; border-radius:3px; margin-left:6px; color:white;">MY</span>' : '';
+
                     container.innerHTML += `
-                        <div class="director-card dir-${idx}">
+                        <div class="director-card dir-${idx}" ${isMyCard}>
                             <div class="card-header">
-                                <span class="team-title">${dir.name} 팀</span>
+                                <span class="team-title">${dir.name} 팀${myBadge}</span>
                                 <div class="point-container"><span>포인트</span><span class="point-badge">${dir.points}</span></div>
                             </div>
                             <div class="card-body">
@@ -762,67 +840,60 @@
             });
 
             if(currentRole === "director" && currentDirKey) {
-                const dZone = document.getElementById('my-team-card-zone');
-                if(dZone) {
-                    const dir = db.directors[currentDirKey];
-                    let squadHtml = "";
-                    const slots = ["팀원1", "팀원2", "팀원3", "팀원4", "팀원5"];
-                    slots.forEach(s => {
-                        const m = dir.squad[s];
-                        squadHtml += m ? `<div class="member-slot"><div class="member-photo filled" style="background-image:url('${m.img}')"></div><div class="member-name">${m.name}</div></div>`
-                                       : `<div class="member-slot"><div class="member-photo">${s}</div><div class="member-name">-</div></div>`;
-                    });
-                    dZone.innerHTML = `
-                        <div class="director-card" style="min-height:130px; background:#1e293b;">
-                            <div class="card-header" style="background:#334155;">
-                                <span class="team-title" style="color:#4ade80;">👑 ${dir.name} 팀 패널</span>
-                            </div>
-                            <div class="card-body" style="background:#0f172a;">
-                                <div class="squad-zone">${squadHtml}</div>
-                            </div>
-                        </div>
-                    `;
+                const headerTitle = document.getElementById('dir-panel-header-title');
+                if(headerTitle) {
+                    headerTitle.innerText = `👥 ${db.directors[currentDirKey].name} 전용 실시간 입찰 패널 (3단 모드)`;
                 }
             }
 
-            const mainPContainer = document.getElementById('main-player-list');
-            const mainFContainer = document.getElementById('main-fail-list');
-            if(mainPContainer && mainFContainer) {
-                mainPContainer.innerHTML = db.playerPool.length === 0 ? `<div style="color:#475569; font-size:12px; padding:10px;">등록된 매물이 없습니다.</div>` : "";
-                db.playerPool.forEach(p => {
-                    mainPContainer.innerHTML += `<div class="visual-card"><div class="visual-avatar" style="background-image:url('${p.img}')"></div><div class="visual-name">${p.name}</div></div>`;
-                });
-                mainFContainer.innerHTML = db.failPool.length === 0 ? `<div style="color:#475569; font-size:12px; padding:10px;">유찰된 매물이 없습니다.</div>` : "";
-                db.failPool.forEach((p, index) => {
-                    mainFContainer.innerHTML += `<div class="visual-card" style="border-color:#ef4444;"><span class="badge-index">${index + 1}</span><div class="visual-avatar" style="background-image:url('${p.img}')"></div><div class="visual-name">${p.name}</div></div>`;
-                });
-            }
+            // 우측 매물 및 유찰 리스트 연동 (방송뷰, 관리자뷰, 팀장뷰 대응)
+            const mappings = [
+                { p: 'main-player-list', f: 'main-fail-list' },
+                { p: 'container-player-list', f: 'container-fail-list' },
+                { p: 'dir-player-list', f: 'dir-fail-list' }
+            ];
+
+            mappings.forEach(m => {
+                const pContainer = document.getElementById(m.p);
+                const fContainer = document.getElementById(m.f);
+                
+                if(pContainer) {
+                    pContainer.innerHTML = db.playerPool.length === 0 ? `<div style="color:#475569; font-size:12px; padding:10px;">등록된 매물이 없습니다.</div>` : "";
+                    db.playerPool.forEach(p => {
+                        if(m.p === 'container-player-list') {
+                            const isSel = db.selectedPlayerId === p.id ? "selected" : "";
+                            pContainer.innerHTML += `
+                                <div class="visual-card ${isSel}" onclick="selectPlayer('${p.id}')">
+                                    <button class="btn-delete-item" onclick="deletePlayerFromPool('${p.id}', event)">X</button>
+                                    <div class="visual-avatar" style="background-image:url('${p.img}')"></div>
+                                    <div class="visual-name">${p.name}</div>
+                                </div>
+                            `;
+                        } else {
+                            pContainer.innerHTML += `<div class="visual-card"><div class="visual-avatar" style="background-image:url('${p.img}')"></div><div class="visual-name">${p.name}</div></div>`;
+                        }
+                    });
+                }
+
+                if(fContainer) {
+                    fContainer.innerHTML = db.failPool.length === 0 ? `<div style="color:#475569; font-size:12px; padding:10px;">유찰된 매물이 없습니다.</div>` : "";
+                    db.failPool.forEach((p, index) => {
+                        if(m.f === 'container-fail-list') {
+                            fContainer.innerHTML += `
+                                <div class="visual-card" style="border-color:#ef4444;" onclick="recoverFailedPlayer(${index})">
+                                    <span class="badge-index">${index + 1}</span>
+                                    <div class="visual-avatar" style="background-image:url('${p.img}')"></div>
+                                    <div class="visual-name">${p.name}</div>
+                                </div>
+                            `;
+                        } else {
+                            fContainer.innerHTML += `<div class="visual-card" style="border-color:#ef4444;"><span class="badge-index">${index + 1}</span><div class="visual-avatar" style="background-image:url('${p.img}')"></div><div class="visual-name">${p.name}</div></div>`;
+                        }
+                    });
+                }
+            });
 
             if(currentRole === 'admin') {
-                const pContainer = document.getElementById('container-player-list');
-                pContainer.innerHTML = db.playerPool.length === 0 ? `<div style="color:#475569; font-size:12px; padding:10px;">매물이 비어있습니다.</div>` : "";
-                db.playerPool.forEach(p => {
-                    const isSel = db.selectedPlayerId === p.id ? "selected" : "";
-                    pContainer.innerHTML += `
-                        <div class="visual-card ${isSel}" onclick="selectPlayer('${p.id}')">
-                            <button class="btn-delete-item" onclick="deletePlayerFromPool('${p.id}', event)">X</button>
-                            <div class="visual-avatar" style="background-image:url('${p.img}')"></div>
-                            <div class="visual-name">${p.name}</div>
-                        </div>
-                    `;
-                });
-
-                const fContainer = document.getElementById('container-fail-list');
-                fContainer.innerHTML = db.failPool.length === 0 ? `<div style="color:#475569; font-size:12px; padding:10px;">유찰 명단이 비어있습니다.</div>` : "";
-                db.failPool.forEach((p, index) => {
-                    fContainer.innerHTML += `
-                        <div class="visual-card" style="border-color:#ef4444;" onclick="recoverFailedPlayer(${index})">
-                            <span class="badge-index">${index + 1}</span>
-                            <div class="visual-avatar" style="background-image:url('${p.img}')"></div>
-                            <div class="visual-name">${p.name}</div>
-                        </div>
-                    `;
-                });
                 updateActiveDirectorPoints();
             }
         }
@@ -843,6 +914,41 @@
             nameInput.value = ""; document.getElementById('reg-player-img').value = "";
             saveStorage(); 
             renderAllStatic();
+        }
+
+        function addBulkPlayersToPool() {
+            const area = document.getElementById('reg-bulk-names');
+            if(!area || !area.value.trim()) { alert('등록할 이름들을 입력해 주세요.'); return; }
+            
+            const lines = area.value.split('\n').filter(l => l.trim().length > 0);
+            if(lines.length === 0) return;
+
+            let baseTime = Date.now();
+            let addedCount = 0;
+
+            lines.forEach((line, idx) => {
+                const parts = line.split(',');
+                const name = parts[0].trim();
+                let img = (parts[1] && parts[1].trim()) ? parts[1].trim() : "";
+
+                if (!name) return;
+                if(!img) { img = "https://api.dicebear.com/7.x/bottts/svg?seed=" + encodeURIComponent(name); }
+
+                db.playerPool.push({
+                    id: "p_" + (baseTime + idx) + "_" + Math.floor(Math.random()*1000),
+                    name: name,
+                    img: img
+                });
+                addedCount++;
+            });
+
+            if(!db.selectedPlayerId && db.playerPool.length > 0) { db.selectedPlayerId = db.playerPool[0].id; }
+
+            area.value = ""; 
+            pushLog(`📦 [대량 등록] 총 ${addedCount}명의 매물이 대량 등록되었습니다.`, "log-divider");
+            saveStorage();
+            renderAllStatic();
+            alert(`총 ${addedCount}명이 성공적으로 추가되었습니다!`);
         }
 
         function deletePlayerFromPool(id, event) {
@@ -890,6 +996,24 @@
             renderAllStatic();
         }
 
+        function clearAllPlayersOnly() {
+            if(!confirm("⚠️ 현재 등록된 전체 매물 및 유찰 목록을 삭제하시겠습니까?\n(팀장 정보 및 획득한 스쿼드는 유지됩니다)")) return;
+            
+            clearInterval(localTimer);
+            db.playerPool = [];
+            db.failPool = [];
+            db.selectedPlayerId = "";
+            db.activeItem = { name: "대기 중", img: "https://api.dicebear.com/7.x/bottts/svg?seed=ready" };
+            db.currentPrice = 0;
+            db.currentBidder = "-";
+            db.timeLeft = 15.00;
+            
+            pushLog("🚨 [초기화] 관리자에 의해 등록된 모든 매물 목록이 제거되었습니다.", "log-fail");
+            saveStorage();
+            renderAllStatic();
+            alert("매물 명단이 초기화되었습니다.");
+        }
+
         function triggerSequence() {
             if(currentRole !== "admin") return;
             if(db.playerPool.length === 0) { alert("등록된 매물이 없습니다."); return; }
@@ -906,18 +1030,18 @@
             renderAllStatic();
             
             let c = 3;
-            emitRemoteSound('ready_tick'); // 3초 소리
+            emitRemoteSound('ready_tick');
             pushLog(`📢 ${db.activeItem.name} - 경매 개시 준비 - ${c}초`, 'log-countdown');
             c--;
 
             let seq = setInterval(() => {
                 if(c > 0) { 
-                    emitRemoteSound('ready_tick'); // 2초, 1초 소리
+                    emitRemoteSound('ready_tick');
                     pushLog(`📢 ${db.activeItem.name} - 경매 개시 준비 - ${c}초`, 'log-countdown'); 
                     c--; 
                 } else { 
                     clearInterval(seq); 
-                    emitRemoteSound('start'); // 🔥 0초: 본경매 개시 '공' 소리 출력
+                    emitRemoteSound('start');
                     pushLog(`🔥 ${db.activeItem.name} - 경매 시작!`, 'log-start'); 
                     startAdminTimer(); 
                 }
@@ -1011,7 +1135,7 @@
         function pushLog(text, className) { db.logs.push({ txt: text, cls: className }); saveStorage(); }
 
         function resetAllData() {
-            if(confirm('데이터를 완전히 초기화하겠습니까?')) { localStorage.removeItem("ham_shared_db"); location.reload(); }
+            if(confirm('데이터를 완전히 초기화하겠습니까? (팀 정보, 포인트, 스쿼드 전반 초기화)')) { localStorage.removeItem("ham_shared_db"); location.reload(); }
         }
 
         window.onload = init;

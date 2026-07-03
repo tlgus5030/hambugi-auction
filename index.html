@@ -76,9 +76,10 @@
             overflow: hidden;
         }
 
-        /* [1구역] 팀 목록 존 (좌측) */
+        /* [1구역] 팀 목록 존 (좌측) - 최소 너비 보장하도록 수정 */
         .team-zone {
             flex: 1.4;
+            min-width: 380px; /* 무조건 보이도록 최소 너비 강제 고정 */
             display: flex;
             flex-direction: column;
             gap: 12px;
@@ -239,6 +240,7 @@
         /* [2구역] 경매창 존 (중앙) */
         .auction-zone {
             flex: 1;
+            min-width: 320px;
             display: flex;
             flex-direction: column;
             gap: 12px;
@@ -419,6 +421,7 @@
         /* [3구역] 비주얼 매물 및 유찰 리스트 구역 */
         .list-zone {
             flex: 1.1;
+            min-width: 280px;
             display: flex;
             flex-direction: column;
             gap: 12px;
@@ -448,16 +451,6 @@
                 justify-content: space-between;
                 align-items: center;
             }
-
-        .visual-grid {
-            flex: 1;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            overflow-y: auto;
-            align-content: start;
-            padding-right: 2px;
-        }
 
         .visual-grid {
             flex: 1;
@@ -547,6 +540,7 @@
         /* [4구역] 관리 제어 스크린 존 */
         .admin-zone {
             flex: 1.2;
+            min-width: 320px;
             background-color: #1e293b;
             padding: 12px;
             border-radius: 8px;
@@ -874,7 +868,6 @@
     </div>
 
     <script>
-        // 🌟 보내주신 원격 실시간 데이터베이스 연동 완료!
         const FIREBASE_URL = "https://hbg-auction-default-rtdb.asia-southeast1.firebasedatabase.app";
 
         const defaultDb = {
@@ -904,7 +897,6 @@
 
         function goPage(hash) { location.hash = hash; location.reload(); }
 
-        // Firebase 데이터 원격 코어 통신 엔진
         async function fbPut(data) {
             if(!FIREBASE_URL) return;
             try { await fetch(`${FIREBASE_URL}/auction.json`, { method: 'PUT', body: JSON.stringify(data) }); } catch(e) { console.error(e); }
@@ -944,15 +936,17 @@
             if(!hash) { document.getElementById('lobby').style.display = "flex"; return; }
 
             const initialData = await fbGet();
-            if(initialData) { db = initialData; } else { await fbPut(defaultDb); }
+            if(initialData && initialData.directors) { db = initialData; } else { await fbPut(defaultDb); }
 
             if(hash === "admin") {
                 currentRole = "admin"; document.body.setAttribute('data-view', 'admin');
                 for(let i=0; i<4; i++){
-                    document.getElementById(`dir-name-${i}`).value = db.directors[`dir${i}`].name;
-                    document.getElementById(`dir-pt-${i}`).value = db.directors[`dir${i}`].points;
-                    if(db.directors[`dir${i}`].img !== defaultDb.directors[`dir${i}`].img) {
-                        document.getElementById(`dir-img-${i}`).value = db.directors[`dir${i}`].img;
+                    if(db.directors && db.directors[`dir${i}`]) {
+                        document.getElementById(`dir-name-${i}`).value = db.directors[`dir${i}`].name;
+                        document.getElementById(`dir-pt-${i}`).value = db.directors[`dir${i}`].points;
+                        if(db.directors[`dir${i}`].img !== defaultDb.directors[`dir${i}`].img) {
+                            document.getElementById(`dir-img-${i}`).value = db.directors[`dir${i}`].img;
+                        }
                     }
                 }
                 rebuildSelect(); renderAllStatic();
@@ -964,10 +958,10 @@
                 renderAllStatic();
             }
 
-            // 🌟 초고속 원격 폴링 동기화 엔진 루프 (감독, 방송화면 실시간 연동)
+            // 원격 폴링 루프
             setInterval(async () => {
                 const remote = await fbGet();
-                if(remote) {
+                if(remote && remote.directors) {
                     let isChanged = JSON.stringify(db.directors) !== JSON.stringify(remote.directors) ||
                                     JSON.stringify(db.playerPool) !== JSON.stringify(remote.playerPool) ||
                                     JSON.stringify(db.failPool) !== JSON.stringify(remote.failPool) ||
@@ -989,27 +983,28 @@
 
                     if(currentRole === "broadcast") {
                         document.getElementById('main-timer-display').innerText = `TIME COUNT | ${db.timeLeft.toFixed(2)}`;
-                        document.getElementById('main-active-name').innerText = db.activeItem.name;
-                        document.getElementById('main-active-img').style.backgroundImage = `url('${db.activeItem.img}')`;
-                        document.getElementById('main-log-box').innerHTML = db.logs.map(l => `<div class="${l.cls}">${l.txt}</div>`).join("");
+                        document.getElementById('main-active-name').innerText = db.activeItem ? db.activeItem.name : "대기 중";
+                        document.getElementById('main-active-img').style.backgroundImage = `url('${db.activeItem ? db.activeItem.img : ''}')`;
+                        document.getElementById('main-log-box').innerHTML = db.logs ? db.logs.map(l => `<div class="${l.cls}">${l.txt}</div>`).join("") : "";
                     } else if(currentRole === "admin") {
                         document.getElementById('admin-timer-display').innerText = `TIME COUNT | ${db.timeLeft.toFixed(2)}`;
-                        document.getElementById('admin-active-name').innerText = db.activeItem.name;
-                        document.getElementById('admin-active-img').style.backgroundImage = `url('${db.activeItem.img}')`;
+                        document.getElementById('admin-active-name').innerText = db.activeItem ? db.activeItem.name : "대기 중";
+                        document.getElementById('admin-active-img').style.backgroundImage = `url('${db.activeItem ? db.activeItem.img : ''}')`;
                         document.getElementById('gosegu-highest-price').innerText = db.currentPrice;
-                        document.getElementById('admin-log-box').innerHTML = db.logs.map(l => `<div class="${l.cls}">${l.txt}</div>`).join("");
+                        document.getElementById('admin-log-box').innerHTML = db.logs ? db.logs.map(l => `<div class="${l.cls}">${l.txt}</div>`).join("") : "";
                     } else if(currentRole === "director") {
                         document.getElementById('dir-timer-display').innerText = `TIME COUNT | ${db.timeLeft.toFixed(2)}`;
-                        document.getElementById('dir-active-name').innerText = db.activeItem.name;
-                        document.getElementById('dir-active-img').style.backgroundImage = `url('${db.activeItem.img}')`;
+                        document.getElementById('dir-active-name').innerText = db.activeItem ? db.activeItem.name : "대기 중";
+                        document.getElementById('dir-active-img').style.backgroundImage = `url('${db.activeItem ? db.activeItem.img : ''}')`;
                         document.getElementById('dir-highest-price').innerText = db.currentPrice;
-                        document.getElementById('dir-my-points').innerText = db.directors[currentDirKey].points;
-                        document.getElementById('dir-log-box').innerHTML = db.logs.map(l => `<div class="${l.cls}">${l.txt}</div>`).join("");
+                        if(db.directors && db.directors[currentDirKey]) {
+                            document.getElementById('dir-my-points').innerText = db.directors[currentDirKey].points;
+                        }
+                        document.getElementById('dir-log-box').innerHTML = db.logs ? db.logs.map(l => `<div class="${l.cls}">${l.txt}</div>`).join("") : "";
                     }
                 }
             }, 150);
 
-            // 관리자 타이머 진행 시 차감 전송 루프
             setInterval(() => {
                 if(currentRole === 'admin' && localTimer) {
                     db.timeLeft -= 0.02;
@@ -1045,6 +1040,7 @@
         }
 
         function renderAllStatic() {
+            if(!db || !db.directors) return;
             const targets = ['main-director-list', 'admin-director-list', 'dir-all-teams-list'];
             targets.forEach(id => {
                 const container = document.getElementById(id); if(!container) return;
@@ -1053,7 +1049,7 @@
                     const dir = db.directors[key]; let squadHtml = "";
                     const slots = ["팀원1", "팀원2", "팀원3", "팀원4", "팀원5"];
                     slots.forEach(s => {
-                        const m = dir.squad[s];
+                        const m = dir.squad ? dir.squad[s] : null;
                         squadHtml += m ? `<div class="member-slot"><div class="member-photo filled" style="background-image:url('${m.img}')"></div><div class="member-name">${m.name}</div></div>`
                                        : `<div class="member-slot"><div class="member-photo">${s}</div><div class="member-name">-</div></div>`;
                     });
@@ -1078,7 +1074,7 @@
                 }
             });
 
-            if(currentRole === "director" && currentDirKey && document.getElementById('dir-panel-header-title')) {
+            if(currentRole === "director" && currentDirKey && document.getElementById('dir-panel-header-title') && db.directors[currentDirKey]) {
                 document.getElementById('dir-panel-header-title').innerText = `👥 ${db.directors[currentDirKey].name} 전용 실시간 입찰 패널 (원격 연결됨)`;
             }
 
@@ -1215,7 +1211,7 @@
         function dirAddPrice(amt) { let i = document.getElementById('dir-custom-input'); i.value = (parseInt(i.value) || db.currentPrice) + amt; }
 
         async function goseguSubmitBid(type) {
-            if(db.timeLeft <= 0 || db.activeItem.name === "대기 중") return;
+            if(db.timeLeft <= 0 || !db.activeItem || db.activeItem.name === "대기 중") return;
             const key = (type === 'admin') ? document.getElementById('active-director-select').value : currentDirKey;
             const inputId = (type === 'admin') ? 'gosegu-custom-input' : 'dir-custom-input';
             const price = parseInt(document.getElementById(inputId).value);
@@ -1230,7 +1226,7 @@
         }
 
         async function closeAuction() {
-            if(db.activeItem.name === "대기 중" || db.currentBidder === "-") return;
+            if(!db.activeItem || db.activeItem.name === "대기 중" || db.currentBidder === "-") return;
             clearInterval(localTimer); localTimer = null;
             const autoSlot = getAutoEmptySlot(db.currentBidder);
             if(autoSlot === null) return;
@@ -1247,7 +1243,7 @@
         }
 
         async function failAuction() {
-            if(db.activeItem.name === "대기 중") return;
+            if(!db.activeItem || db.activeItem.name === "대기 중") return;
             clearInterval(localTimer); localTimer = null;
             db.soundTrigger = { type: 'fail', time: Date.now() };
             db.logs.push({ txt: `❌ ${db.activeItem.name} 선수가 유찰되었습니다.`, cls: 'log-fail' });
@@ -1267,7 +1263,10 @@
 
         function getAutoEmptySlot(directorKey) {
             const slots = ["팀원1", "팀원2", "팀원3", "팀원4", "팀원5"];
-            for(let i=0; i<slots.length; i++) { if(!db.directors[directorKey].squad[slots[i]]) return slots[i]; }
+            for(let i=0; i<slots.length; i++) {
+                if(!db.directors[directorKey].squad) db.directors[directorKey].squad = {};
+                if(!db.directors[directorKey].squad[slots[i]]) return slots[i];
+            }
             return null;
         }
 

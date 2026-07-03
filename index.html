@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>햄부기햄스터 경매 프로그램 (팀장 패널 레이아웃 확장 완료)</title>
+    <title>햄부기햄스터 경매 프로그램 (Firebase 실시간 원격 연동 완료)</title>
     <style>
         body {
             font-family: 'Malgun Gothic', sans-serif;
@@ -15,12 +15,28 @@
             height: 98vh;
             box-sizing: border-box;
         }
-        
+
         /* 뷰어 제어 시스템 (라우팅) */
-        .view-section { display: none; width: 100%; height: 100%; flex-direction: column; gap: 15px; box-sizing: border-box; }
-        body[data-view="broadcast"] #broadcast-view { display: flex; }
-        body[data-view="admin"] #admin-view { display: flex; }
-        body[data-view="director"] #director-view { display: flex; }
+        .view-section {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            gap: 15px;
+            box-sizing: border-box;
+        }
+
+        body[data-view="broadcast"] #broadcast-view {
+            display: flex;
+        }
+
+        body[data-view="admin"] #admin-view {
+            display: flex;
+        }
+
+        body[data-view="director"] #director-view {
+            display: flex;
+        }
 
         /* 상단 네비게이션 바 스타일 */
         .nav-bar {
@@ -32,6 +48,7 @@
             border: 1px solid #1e2d4a;
             margin-bottom: -5px;
         }
+
         .btn-home {
             background-color: #334155;
             color: white;
@@ -45,7 +62,10 @@
             align-items: center;
             gap: 5px;
         }
-        .btn-home:hover { background-color: #475569; }
+
+            .btn-home:hover {
+                background-color: #475569;
+            }
 
         /* 전체 3단 분할 및 레이아웃 시스템 */
         .layout-container {
@@ -69,7 +89,7 @@
             box-sizing: border-box;
             overflow-y: auto;
         }
-        
+
         .director-card {
             background-color: #111c2e;
             border: 1px solid #1e2d4a;
@@ -80,7 +100,7 @@
             flex: 1;
             min-height: 110px;
         }
-        
+
         .card-header {
             background-color: #1c2a43;
             padding: 6px 12px;
@@ -89,11 +109,27 @@
             align-items: center;
             border-bottom: 1px solid #2d3f5d;
         }
-        .team-title { font-size: 16px; font-weight: bold; }
-        .dir-0 .team-title { color: #4ade80; } 
-        .dir-1 .team-title { color: #60a5fa; } 
-        .dir-2 .team-title { color: #c084fc; } 
-        .dir-3 .team-title { color: #f97316; } 
+
+        .team-title {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .dir-0 .team-title {
+            color: #4ade80;
+        }
+
+        .dir-1 .team-title {
+            color: #60a5fa;
+        }
+
+        .dir-2 .team-title {
+            color: #c084fc;
+        }
+
+        .dir-3 .team-title {
+            color: #f97316;
+        }
 
         .point-container {
             display: flex;
@@ -102,16 +138,17 @@
             font-size: 13px;
             color: #94a3b8;
         }
+
         .point-badge {
             background-color: #0f172a;
-            color: #ff5252; 
+            color: #ff5252;
             padding: 2px 10px;
             border-radius: 4px;
             font-weight: bold;
             font-size: 18px;
             border: 1px solid #334155;
         }
-        
+
         .card-body {
             padding: 8px 12px;
             display: flex;
@@ -121,7 +158,15 @@
             flex: 1;
         }
 
-        .director-profile { text-align: center; min-width: 80px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .director-profile {
+            text-align: center;
+            min-width: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
         .director-avatar {
             width: 45px;
             height: 45px;
@@ -131,9 +176,10 @@
             background-size: cover;
             background-position: center;
         }
+
         .director-name {
             font-weight: bold;
-            font-size: 15px; 
+            font-size: 15px;
             color: #ffffff;
             background-color: #080d16;
             padding: 3px 8px;
@@ -141,9 +187,23 @@
             border: 1px solid #233554;
             white-space: nowrap;
         }
-        
-        .squad-zone { display: flex; gap: 8px; align-items: center; flex: 1; justify-content: space-between; }
-        .member-slot { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 60px; }
+
+        .squad-zone {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex: 1;
+            justify-content: space-between;
+        }
+
+        .member-slot {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            width: 60px;
+        }
+
         .member-photo {
             width: 45px;
             height: 45px;
@@ -159,7 +219,12 @@
             color: #475569;
             font-weight: bold;
         }
-        .member-photo.filled { border-color: #3b82f6; color: transparent; }
+
+            .member-photo.filled {
+                border-color: #3b82f6;
+                color: transparent;
+            }
+
         .member-name {
             font-size: 11px;
             font-weight: bold;
@@ -193,6 +258,7 @@
             align-items: center;
             gap: 15px;
         }
+
         .active-item-avatar {
             width: 55px;
             height: 55px;
@@ -202,9 +268,24 @@
             background-size: cover;
             background-position: center;
         }
-        .active-item-info { display: flex; flex-direction: column; gap: 2px; }
-        .active-item-label { font-size: 11px; color: #64748b; font-weight: bold; }
-        .active-item-name { font-size: 18px; font-weight: bold; color: #fff; }
+
+        .active-item-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .active-item-label {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: bold;
+        }
+
+        .active-item-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+        }
 
         .log-box {
             flex: 1;
@@ -217,12 +298,32 @@
             overflow-y: auto;
             border: 1px solid #162238;
         }
-        .log-countdown { color: #eab308; }
-        .log-start { color: #4ade80; font-weight: bold; }
-        .log-bid { color: #f97316; }
-        .log-fail { color: #ef4444; }
-        .log-divider { color: #94a3b8; text-align: left; margin: 8px 0; font-weight: bold; font-size: 12px; }
-        
+
+        .log-countdown {
+            color: #eab308;
+        }
+
+        .log-start {
+            color: #4ade80;
+            font-weight: bold;
+        }
+
+        .log-bid {
+            color: #f97316;
+        }
+
+        .log-fail {
+            color: #ef4444;
+        }
+
+        .log-divider {
+            color: #94a3b8;
+            text-align: left;
+            margin: 8px 0;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
         .time-count {
             background-color: #e04b4b;
             color: white;
@@ -243,15 +344,77 @@
             gap: 6px;
             border: 1px solid #162238;
         }
-        .gosegu-row-bg { background-color: #050a12; padding: 6px; border-radius: 4px; text-align: center; font-size: 14px; font-weight: bold; }
-        .gosegu-price-window { background-color: #050a12; border: 1px solid #ff4a4a; color: #ff4a4a; font-size: 24px; text-align: center; padding: 4px; border-radius: 4px; font-weight: bold; }
-        .gosegu-btn-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
-        .gosegu-btn-grid button { background-color: #2b4c7e; color: white; border: none; padding: 8px 0; font-size: 14px; font-weight: bold; border-radius: 4px; cursor: pointer; }
-        .gosegu-btn-grid button:hover { background-color: #3b66a6; }
-        .gosegu-submit-row { display: grid; grid-template-columns: 1.2fr 1fr; gap: 5px; }
-        .gosegu-submit-row input { background-color: #050a12; border: 1px solid #233554; color: #ffcc00; font-size: 18px; text-align: center; border-radius: 4px; font-weight: bold; }
-        .gosegu-btn-submit { background-color: #2563eb; color: white; border: none; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 14px; }
-        .gosegu-btn-submit:hover { background-color: #3b82f6; }
+
+        .gosegu-row-bg {
+            background-color: #050a12;
+            padding: 6px;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .gosegu-price-window {
+            background-color: #050a12;
+            border: 1px solid #ff4a4a;
+            color: #ff4a4a;
+            font-size: 24px;
+            text-align: center;
+            padding: 4px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .gosegu-btn-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+        }
+
+            .gosegu-btn-grid button {
+                background-color: #2b4c7e;
+                color: white;
+                border: none;
+                padding: 8px 0;
+                font-size: 14px;
+                font-weight: bold;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+
+                .gosegu-btn-grid button:hover {
+                    background-color: #3b66a6;
+                }
+
+        .gosegu-submit-row {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 5px;
+        }
+
+            .gosegu-submit-row input {
+                background-color: #050a12;
+                border: 1px solid #233554;
+                color: #ffcc00;
+                font-size: 18px;
+                text-align: center;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+
+        .gosegu-btn-submit {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+            .gosegu-btn-submit:hover {
+                background-color: #3b82f6;
+            }
 
         /* [3구역] 비주얼 매물 및 유찰 리스트 구역 */
         .list-zone {
@@ -262,6 +425,7 @@
             height: 100%;
             box-sizing: border-box;
         }
+
         .list-section {
             flex: 1;
             background-color: #111827;
@@ -272,8 +436,19 @@
             flex-direction: column;
             overflow: hidden;
         }
-        .list-section h3 { margin-top: 0; margin-bottom: 8px; font-size: 13px; color: #94a3b8; border-bottom: 1px solid #1e293b; padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
-        
+
+            .list-section h3 {
+                margin-top: 0;
+                margin-bottom: 8px;
+                font-size: 13px;
+                color: #94a3b8;
+                border-bottom: 1px solid #1e293b;
+                padding-bottom: 4px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
         .visual-grid {
             flex: 1;
             display: grid;
@@ -283,6 +458,17 @@
             align-content: start;
             padding-right: 2px;
         }
+
+        .visual-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            overflow-y: auto;
+            align-content: start;
+            padding-right: 2px;
+        }
+
         .visual-card {
             background-color: #0f172a;
             border: 1px solid #1e293b;
@@ -295,8 +481,17 @@
             position: relative;
             cursor: pointer;
         }
-        .visual-card:hover { border-color: #3b82f6; background-color: #1e293b; }
-        .visual-card.selected { border-color: #eab308; background-color: #172554; }
+
+            .visual-card:hover {
+                border-color: #3b82f6;
+                background-color: #1e293b;
+            }
+
+            .visual-card.selected {
+                border-color: #eab308;
+                background-color: #172554;
+            }
+
         .visual-avatar {
             width: 42px;
             height: 42px;
@@ -306,6 +501,7 @@
             background-size: cover;
             background-position: center;
         }
+
         .visual-name {
             font-size: 11px;
             font-weight: bold;
@@ -316,6 +512,7 @@
             text-overflow: ellipsis;
             width: 100%;
         }
+
         .badge-index {
             position: absolute;
             top: 3px;
@@ -327,6 +524,7 @@
             border-radius: 3px;
             font-weight: bold;
         }
+
         .visual-card .btn-delete-item {
             position: absolute;
             top: 2px;
@@ -340,7 +538,11 @@
             padding: 2px 5px;
             z-index: 99;
         }
-        .visual-card .btn-delete-item:hover { background: #ef4444; color: white; }
+
+            .visual-card .btn-delete-item:hover {
+                background: #ef4444;
+                color: white;
+            }
 
         /* [4구역] 관리 제어 스크린 존 */
         .admin-zone {
@@ -356,38 +558,141 @@
             overflow-y: auto;
             height: 100%;
         }
-        .admin-zone h2 { margin: 0; color: #3b82f6; font-size: 16px; border-bottom: 1px solid #475569; padding-bottom: 6px;}
-        .admin-section { background-color: #111827; padding: 8px; border-radius: 6px; border: 1px solid #334155;}
-        .admin-section h3 { margin-top: 0; margin-bottom: 6px; font-size: 12px; color: #94a3b8; }
-        
-        .admin-section input, .admin-section select, .admin-section button, .admin-section textarea { width: 100%; padding: 6px; box-sizing: border-box; font-size: 12px; border-radius: 4px; border: none; }
-        .admin-section input, .admin-section select, .admin-section textarea { background-color: #0f172a; color: white; border: 1px solid #334155; }
-        .admin-section button { background-color: #2563eb; color: white; font-weight: bold; cursor: pointer; }
-        .btn-start { background-color: #16a34a; }
-        .btn-danger { background-color: #dc2626; }
-        .btn-shuffle { background-color: #a855f7; }
-        
-        .setting-table { width: 100%; margin-bottom: 4px; border-collapse: collapse; }
-        .setting-table th { font-size: 11px; color:#94a3b8; padding-bottom:2px; text-align:left; }
-        .setting-table td { padding: 3px 0; }
-        .setting-table input { padding: 4px; font-size: 11px; }
 
-        #lobby { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; gap: 12px; padding: 40px 10px; }
-        .lobby-btn { width: 340px; padding: 12px; font-size: 15px; background-color: #1e293b; color: white; border: 1px solid #3b82f6; border-radius: 6px; cursor: pointer; font-weight: bold; text-align: left; display: flex; justify-content: space-between; align-items: center;}
-        .lobby-btn:hover { background-color: #2563eb; }
-        .dir-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; width: 340px; }
-        .dir-grid button { padding: 12px; font-weight: bold; color: white; border-radius: 6px; border: 1px solid #475569; cursor: pointer; font-size: 14px; }
+            .admin-zone h2 {
+                margin: 0;
+                color: #3b82f6;
+                font-size: 16px;
+                border-bottom: 1px solid #475569;
+                padding-bottom: 6px;
+            }
+
+        .admin-section {
+            background-color: #111827;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+        }
+
+            .admin-section h3 {
+                margin-top: 0;
+                margin-bottom: 6px;
+                font-size: 12px;
+                color: #94a3b8;
+            }
+
+            .admin-section input, .admin-section select, .admin-section button, .admin-section textarea {
+                width: 100%;
+                padding: 6px;
+                box-sizing: border-box;
+                font-size: 12px;
+                border-radius: 4px;
+                border: none;
+            }
+
+            .admin-section input, .admin-section select, .admin-section textarea {
+                background-color: #0f172a;
+                color: white;
+                border: 1px solid #334155;
+            }
+
+            .admin-section button {
+                background-color: #2563eb;
+                color: white;
+                font-weight: bold;
+                cursor: pointer;
+            }
+
+        .btn-start {
+            background-color: #16a34a;
+        }
+
+        .btn-danger {
+            background-color: #dc2626;
+        }
+
+        .btn-shuffle {
+            background-color: #a855f7;
+        }
+
+        .setting-table {
+            width: 100%;
+            margin-bottom: 4px;
+            border-collapse: collapse;
+        }
+
+            .setting-table th {
+                font-size: 11px;
+                color: #94a3b8;
+                padding-bottom: 2px;
+                text-align: left;
+            }
+
+            .setting-table td {
+                padding: 3px 0;
+            }
+
+            .setting-table input {
+                padding: 4px;
+                font-size: 11px;
+            }
+
+        #lobby {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            gap: 12px;
+            padding: 40px 10px;
+        }
+
+        .lobby-btn {
+            width: 340px;
+            padding: 12px;
+            font-size: 15px;
+            background-color: #1e293b;
+            color: white;
+            border: 1px solid #3b82f6;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            .lobby-btn:hover {
+                background-color: #2563eb;
+            }
+
+        .dir-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            width: 340px;
+        }
+
+            .dir-grid button {
+                padding: 12px;
+                font-weight: bold;
+                color: white;
+                border-radius: 6px;
+                border: 1px solid #475569;
+                cursor: pointer;
+                font-size: 14px;
+            }
     </style>
 </head>
 <body>
 
-    <!-- 🚪 0. 초기 주소 로비 화면 -->
     <div id="lobby" style="display: none;">
         <h1 style="color:#3b82f6; margin-bottom: 0px;">🍔 햄부기햄스터 경매 시스템</h1>
-        <p style="color:#64748b; margin-bottom: 15px;">원하는 모드를 선택하세요. 모든 브라우저 탭은 실시간 연동됩니다.</p>
+        <p style="color:#64748b; margin-bottom: 15px;">원하는 모드를 선택하세요. Firebase 원격 서버를 통해 전 세계 실시간 동기화됩니다.</p>
         <button class="lobby-btn" style="background-color:#16a34a;" onclick="goPage('admin')">🛠️ 1. 메인 통합 제어 화면 <span>열기 ▶</span></button>
         <button class="lobby-btn" style="background-color:#eab308; color:black;" onclick="goPage('broadcast')">📺 2. 디코 방송 송출 전용 창 <span>열기 ▶</span></button>
-        
+
         <div style="width: 340px; border-top: 1px solid #1e293b; margin: 10px 0; padding-top: 10px;">
             <p style="font-size: 13px; color: #94a3b8; margin: 0 0 8px 0; font-weight: bold;">👥 3. 각 팀장 전용 독립 입찰 링크 패널</p>
             <div class="dir-grid">
@@ -400,7 +705,6 @@
         <button class="lobby-btn" style="background-color:#334155; width:340px; font-size:12px; margin-top:20px;" onclick="resetAllData()">🔄 데이터 전체 포맷 초기화</button>
     </div>
 
-    <!-- 📺 1. 방송 송출 전용 뷰 (#broadcast) -->
     <div id="broadcast-view" class="view-section">
         <div class="nav-bar">
             <button class="btn-home" onclick="goPage('')">🏠 메인 로비로 이동</button>
@@ -432,7 +736,6 @@
         </div>
     </div>
 
-    <!-- 🛠️ 2. 관리자 통합 컨트롤러 제어 뷰 (#admin) -->
     <div id="admin-view" class="view-section">
         <div class="nav-bar">
             <button class="btn-home" onclick="goPage('')">🏠 메인 로비로 이동</button>
@@ -485,27 +788,25 @@
                 <div class="admin-section">
                     <h3>👥 1. 팀장명, 초기 포인트, 프로필 설정</h3>
                     <table class="setting-table">
-                        <thead><tr><th>구분</th><th>팀장 이름</th><th>포인트</th><th>프로필 URL (옵션)</th></tr></thead>
+                        <thead><tr><th>구분</th><th>팀장 이름</th><th>포인트</th><th>프로필 URL</th></tr></thead>
                         <tbody>
-                            <tr><td>#A</td><td><input type="text" id="dir-name-0" value="감독A" oninput="syncAdminSettings()"></td><td><input type="number" id="dir-pt-0" value="1000" oninput="syncAdminSettings()"></td><td><input type="text" id="dir-img-0" placeholder="기본 이미지" oninput="syncAdminSettings()"></td></tr>
-                            <tr><td>#B</td><td><input type="text" id="dir-name-1" value="감독B" oninput="syncAdminSettings()"></td><td><input type="number" id="dir-pt-1" value="1000" oninput="syncAdminSettings()"></td><td><input type="text" id="dir-img-1" placeholder="기본 이미지" oninput="syncAdminSettings()"></td></tr>
-                            <tr><td>#C</td><td><input type="text" id="dir-name-2" value="감독C" oninput="syncAdminSettings()"></td><td><input type="number" id="dir-pt-2" value="1000" oninput="syncAdminSettings()"></td><td><input type="text" id="dir-img-2" placeholder="기본 이미지" oninput="syncAdminSettings()"></td></tr>
-                            <tr><td>#D</td><td><input type="text" id="dir-name-3" value="감독D" oninput="syncAdminSettings()"></td><td><input type="number" id="dir-pt-3" value="1000" oninput="syncAdminSettings()"></td><td><input type="text" id="dir-img-3" placeholder="기본 이미지" oninput="syncAdminSettings()"></td></tr>
+                            <tr><td>#A</td><td><input type="text" id="dir-name-0" value="감독A" onchange="syncAdminSettings()"></td><td><input type="number" id="dir-pt-0" value="1000" onchange="syncAdminSettings()"></td><td><input type="text" id="dir-img-0" onchange="syncAdminSettings()"></td></tr>
+                            <tr><td>#B</td><td><input type="text" id="dir-name-1" value="감독B" onchange="syncAdminSettings()"></td><td><input type="number" id="dir-pt-1" value="1000" onchange="syncAdminSettings()"></td><td><input type="text" id="dir-img-1" onchange="syncAdminSettings()"></td></tr>
+                            <tr><td>#C</td><td><input type="text" id="dir-name-2" value="감독C" onchange="syncAdminSettings()"></td><td><input type="number" id="dir-pt-2" value="1000" onchange="syncAdminSettings()"></td><td><input type="text" id="dir-img-2" onchange="syncAdminSettings()"></td></tr>
+                            <tr><td>#D</td><td><input type="text" id="dir-name-3" value="감독D" onchange="syncAdminSettings()"></td><td><input type="number" id="dir-pt-3" value="1000" onchange="syncAdminSettings()"></td><td><input type="text" id="dir-img-3" onchange="syncAdminSettings()"></td></tr>
                         </tbody>
                     </table>
                 </div>
                 <div class="admin-section">
                     <h3>📦 2. 사전 매물 추가 보관함</h3>
                     <div style="display:flex; flex-direction:column; gap:4px; margin-bottom: 8px;">
-                        <span style="font-size:10px; color:#a855f7;">[개별 등록]</span>
-                        <input type="text" id="reg-player-name" placeholder="매물 이름 (예: 플레이어 이름)">
-                        <input type="text" id="reg-player-img" placeholder="이미지 주소 (비워둘 시 자동 생성)">
-                        <button style="background-color: #3b82f6; color:white; font-weight:bold;" onclick="addNewPlayerToPool()">➕ 단일 매물 등록</button>
+                        <input type="text" id="reg-player-name" placeholder="매물 이름">
+                        <input type="text" id="reg-player-img" placeholder="이미지 주소 (옵션)">
+                        <button style="background-color: #3b82f6; color:white;" onclick="addNewPlayerToPool()">➕ 단일 매물 등록</button>
                     </div>
                     <div style="display:flex; flex-direction:column; gap:4px; border-top: 1px solid #2d3f5d; padding-top: 6px;">
-                        <span style="font-size:10px; color:#eab308;">[여러 명 대량 일괄 등록 - 이름, 이미지주소]</span>
-                        <textarea id="reg-bulk-names" rows="3" placeholder="이름, 이미지주소 (엔터로 구분)&#10;예시:&#10;홍길동, https://imgur.com/abc.png&#10;이순신&#10;김유신, https://imgur.com/xyz.jpg" style="resize:vertical; font-family:inherit; font-size:11px; padding:4px;"></textarea>
-                        <button style="background-color: #eab308; color:black; font-weight:bold;" onclick="addBulkPlayersToPool()">⚡ 여러 명 일괄 등록</button>
+                        <textarea id="reg-bulk-names" rows="2" placeholder="이름, 이미지주소 (엔터 구분)"></textarea>
+                        <button style="background-color: #eab308; color:black;" onclick="addBulkPlayersToPool()">⚡ 일괄 등록</button>
                     </div>
                 </div>
                 <div class="admin-section">
@@ -519,25 +820,20 @@
                     <button class="btn-danger" onclick="closeAuction()">🔨 낙찰 확정</button>
                     <button style="background-color: #64748b; color:white;" onclick="failAuction()">❌ 유찰 처리</button>
                 </div>
-                <div class="admin-section" style="border-color:#7f1d1d;">
-                    <h3>🚨 4. 초기화 위험 구역</h3>
-                    <button class="btn-danger" style="background-color:#991b1b; padding:8px;" onclick="clearAllPlayersOnly()">⚠️ 등록된 전체 매물 삭제</button>
+                <div class="admin-section">
+                    <button class="btn-danger" style="background-color:#991b1b;" onclick="clearAllPlayersOnly()">⚠️ 등록된 전체 매물 삭제</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 👥 3. 팀장 전용 개별 패널 뷰 (#dir0, #dir1, #dir2, #dir3) -> 3단 와이드형으로 구조 변경 완료 -->
     <div id="director-view" class="view-section">
         <div class="nav-bar">
             <button class="btn-home" onclick="goPage('')">🏠 메인 로비로 이동</button>
             <span id="dir-panel-header-title" style="margin-left:15px; font-size:13px; font-weight:bold; color:#4ade80;">👥 팀장 전용 입찰 패널</span>
         </div>
         <div class="layout-container">
-            <!-- [1구역] 전체 팀 상황판 공유 (좌측) -->
             <div class="team-zone" id="dir-all-teams-list"></div>
-            
-            <!-- [2구역] 본인 전용 실시간 경매 및 입찰 (중앙) -->
             <div class="auction-zone">
                 <div class="active-item-panel">
                     <div class="active-item-avatar" id="dir-active-img" style="background-image:url('https://api.dicebear.com/7.x/bottts/svg?seed=ready')"></div>
@@ -548,7 +844,7 @@
                 </div>
                 <div class="log-box" id="dir-log-box">------------- 다음 경매 대기중 -------------</div>
                 <div class="time-count" id="dir-timer-display">TIME COUNT | 15.00</div>
-                
+
                 <div class="gosegu-bid-panel">
                     <div class="gosegu-row-bg">💰 나의 잔여 포인트 | <span id="dir-my-points">0</span></div>
                     <div class="gosegu-price-window" id="dir-highest-price">0</div>
@@ -564,8 +860,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- [3구역] 실시간 매물 현황 공유 (우측) -->
             <div class="list-zone">
                 <div class="list-section">
                     <h3>📋 전체 등록 매물 리스트</h3>
@@ -580,6 +874,9 @@
     </div>
 
     <script>
+        // 🌟 보내주신 원격 실시간 데이터베이스 연동 완료!
+        const FIREBASE_URL = "https://hbg-auction-default-rtdb.asia-southeast1.firebasedatabase.app";
+
         const defaultDb = {
             directors: {
                 "dir0": { name: "감독A", img: "https://api.dicebear.com/7.x/adventurer/svg?seed=A", points: 1000, squad: { "팀원1": null, "팀원2": null, "팀원3": null, "팀원4": null, "팀원5": null } },
@@ -591,7 +888,7 @@
             currentBidder: "-",
             timeLeft: 15.00,
             logs: [{ txt: "------------- 다음 경매 대기중 -------------", cls: "log-divider" }],
-            playerPool: [], 
+            playerPool: [],
             failPool: [],
             selectedPlayerId: "",
             activeItem: { name: "대기 중", img: "https://api.dicebear.com/7.x/bottts/svg?seed=ready" },
@@ -600,14 +897,21 @@
 
         let db = JSON.parse(JSON.stringify(defaultDb));
         let localTimer = null;
-        let currentRole = ""; 
-        let currentDirKey = ""; 
+        let currentRole = "";
+        let currentDirKey = "";
         let lastPlayedTriggerTime = 0;
         let lastSecondsInt = 15;
 
-        function goPage(hash) {
-            location.hash = hash;
-            location.reload();
+        function goPage(hash) { location.hash = hash; location.reload(); }
+
+        // Firebase 데이터 원격 코어 통신 엔진
+        async function fbPut(data) {
+            if(!FIREBASE_URL) return;
+            try { await fetch(`${FIREBASE_URL}/auction.json`, { method: 'PUT', body: JSON.stringify(data) }); } catch(e) { console.error(e); }
+        }
+        async function fbGet() {
+            if(!FIREBASE_URL) return null;
+            try { const r = await fetch(`${FIREBASE_URL}/auction.json`); return await r.json(); } catch(e) { return null; }
         }
 
         function playTone(type) {
@@ -615,164 +919,107 @@
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
                 if (!AudioContext) return;
                 const ctx = new AudioContext();
-                
                 if (type === 'ready_tick') {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(350, ctx.currentTime);
-                    gain.gain.setValueAtTime(0.08, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
-                    osc.connect(gain); gain.connect(ctx.destination);
-                    osc.start(); osc.stop(ctx.currentTime + 0.08);
-                }
-                else if (type === 'start') {
+                    const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(350, ctx.currentTime); gain.gain.setValueAtTime(0.08, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08); osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.08);
+                } else if (type === 'start') {
                     [440, 554.37, 659.25].forEach((freq) => {
-                        const osc = ctx.createOscillator();
-                        const gain = ctx.createGain();
-                        osc.type = 'triangle';
-                        osc.frequency.setValueAtTime(freq, ctx.currentTime);
-                        gain.gain.setValueAtTime(0.08, ctx.currentTime);
-                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
-                        osc.connect(gain); gain.connect(ctx.destination);
-                        osc.start(); osc.stop(ctx.currentTime + 1.2);
+                        const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.type = 'triangle'; osc.frequency.setValueAtTime(freq, ctx.currentTime); gain.gain.setValueAtTime(0.08, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2); osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 1.2);
                     });
-                }
-                else if (type === 'warn_tick') {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(880, ctx.currentTime);
-                    gain.gain.setValueAtTime(0.12, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
-                    osc.connect(gain); gain.connect(ctx.destination);
-                    osc.start(); osc.stop(ctx.currentTime + 0.12);
-                }
-                else if (type === 'bid') {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(1100, ctx.currentTime);
-                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.12);
-                    osc.connect(gain); gain.connect(ctx.destination);
-                    osc.start(); osc.stop(ctx.currentTime + 0.12);
-                }
-                else if (type === 'success') {
+                } else if (type === 'warn_tick') {
+                    const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(880, ctx.currentTime); gain.gain.setValueAtTime(0.12, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12); osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.12);
+                } else if (type === 'bid') {
+                    const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(1100, ctx.currentTime); gain.gain.setValueAtTime(0.1, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.12); osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.12);
+                } else if (type === 'success') {
                     [523.25, 659.25, 783.99].forEach((freq, i) => {
-                        const osc = ctx.createOscillator();
-                        const gain = ctx.createGain();
-                        osc.type = 'sine';
-                        osc.frequency.setValueAtTime(freq, ctx.currentTime + i*0.08);
-                        gain.gain.setValueAtTime(0.1, ctx.currentTime + i*0.08);
-                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i*0.08 + 0.4);
-                        osc.connect(gain); gain.connect(ctx.destination);
-                        osc.start(ctx.currentTime + i*0.08); osc.stop(ctx.currentTime + i*0.08 + 0.4);
+                        const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(freq, ctx.currentTime + i*0.08); gain.gain.setValueAtTime(0.1, ctx.currentTime + i*0.08); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i*0.08 + 0.4); osc.connect(gain); gain.connect(ctx.destination); osc.start(ctx.currentTime + i*0.08); osc.stop(ctx.currentTime + i*0.08 + 0.4);
                     });
+                } else if (type === 'fail') {
+                    const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(170, ctx.currentTime); osc.frequency.linearRampToValueAtTime(110, ctx.currentTime + 0.45); gain.gain.setValueAtTime(0.12, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.48); osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.48);
                 }
-                else if (type === 'fail') {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(170, ctx.currentTime);
-                    osc.frequency.linearRampToValueAtTime(110, ctx.currentTime + 0.45);
-                    gain.gain.setValueAtTime(0.12, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.48);
-                    osc.connect(gain); gain.connect(ctx.destination);
-                    osc.start(); osc.stop(ctx.currentTime + 0.48);
-                }
-            } catch (e) { console.log("Audio deferred:", e); }
+            } catch (e) {}
         }
 
-        function loadStorage() {
-            const data = localStorage.getItem("ham_shared_db");
-            if(data) { db = JSON.parse(data); } else { db = JSON.parse(JSON.stringify(defaultDb)); saveStorage(); }
-        }
-        function saveStorage() { localStorage.setItem("ham_shared_db", JSON.stringify(db)); }
-
-        function init() {
+        async function init() {
             const hash = location.hash.replace("#", "");
             if(!hash) { document.getElementById('lobby').style.display = "flex"; return; }
-            loadStorage();
+
+            const initialData = await fbGet();
+            if(initialData) { db = initialData; } else { await fbPut(defaultDb); }
 
             if(hash === "admin") {
-                currentRole = "admin";
-                document.body.setAttribute('data-view', 'admin');
+                currentRole = "admin"; document.body.setAttribute('data-view', 'admin');
                 for(let i=0; i<4; i++){
                     document.getElementById(`dir-name-${i}`).value = db.directors[`dir${i}`].name;
                     document.getElementById(`dir-pt-${i}`).value = db.directors[`dir${i}`].points;
-                    const currentImg = db.directors[`dir${i}`].img;
-                    const defaultImg = defaultDb.directors[`dir${i}`].img;
-                    document.getElementById(`dir-img-${i}`).value = (currentImg === defaultImg) ? "" : currentImg;
+                    if(db.directors[`dir${i}`].img !== defaultDb.directors[`dir${i}`].img) {
+                        document.getElementById(`dir-img-${i}`).value = db.directors[`dir${i}`].img;
+                    }
                 }
-                syncAdminSettings();
+                rebuildSelect(); renderAllStatic();
             } else if(hash === "broadcast") {
-                currentRole = "broadcast";
-                document.body.setAttribute('data-view', 'broadcast');
+                currentRole = "broadcast"; document.body.setAttribute('data-view', 'broadcast');
                 renderAllStatic();
             } else if(hash.startsWith("dir")) {
-                currentRole = "director";
-                currentDirKey = hash; 
-                document.body.setAttribute('data-view', 'director');
+                currentRole = "director"; currentDirKey = hash; document.body.setAttribute('data-view', 'director');
                 renderAllStatic();
             }
 
-            window.addEventListener('storage', (e) => {
-                if(e.key === "ham_shared_db") { 
-                    loadStorage(); 
-                    renderAllStatic(); 
-                }
-            });
+            // 🌟 초고속 원격 폴링 동기화 엔진 루프 (감독, 방송화면 실시간 연동)
+            setInterval(async () => {
+                const remote = await fbGet();
+                if(remote) {
+                    let isChanged = JSON.stringify(db.directors) !== JSON.stringify(remote.directors) ||
+                                    JSON.stringify(db.playerPool) !== JSON.stringify(remote.playerPool) ||
+                                    JSON.stringify(db.failPool) !== JSON.stringify(remote.failPool) ||
+                                    db.selectedPlayerId !== remote.selectedPlayerId;
 
-            setInterval(() => {
-                loadStorage();
-                
-                if (db.soundTrigger && db.soundTrigger.time > lastPlayedTriggerTime) {
-                    playTone(db.soundTrigger.type);
-                    lastPlayedTriggerTime = db.soundTrigger.time;
-                }
+                    db = remote;
+                    if(isChanged) renderAllStatic();
 
-                if (db.timeLeft > 0 && db.timeLeft <= 5.05) {
-                    let currentSecInt = Math.ceil(db.timeLeft);
-                    if (currentSecInt !== lastSecondsInt && currentSecInt > 0) {
-                        playTone('warn_tick');
-                        lastSecondsInt = currentSecInt;
+                    if (db.soundTrigger && db.soundTrigger.time > lastPlayedTriggerTime) {
+                        playTone(db.soundTrigger.type);
+                        lastPlayedTriggerTime = db.soundTrigger.time;
                     }
-                } else if (db.timeLeft > 5.05 || db.timeLeft <= 0) {
-                    lastSecondsInt = 15;
-                }
+                    if (db.timeLeft > 0 && db.timeLeft <= 5.05) {
+                        let currentSecInt = Math.ceil(db.timeLeft);
+                        if (currentSecInt !== lastSecondsInt && currentSecInt > 0) {
+                            playTone('warn_tick'); lastSecondsInt = currentSecInt;
+                        }
+                    } else if (db.timeLeft > 5.05 || db.timeLeft <= 0) { lastSecondsInt = 15; }
 
-                if(currentRole === "broadcast") {
-                    document.getElementById('main-timer-display').innerText = `TIME COUNT | ${db.timeLeft.toFixed(2)}`;
-                    document.getElementById('main-active-name').innerText = db.activeItem.name;
-                    document.getElementById('main-active-img').style.backgroundImage = `url('${db.activeItem.img}')`;
-                    const box = document.getElementById('main-log-box');
-                    if(box) { box.innerHTML = db.logs.map(l => `<div class="${l.cls}">${l.txt}</div>`).join(""); }
-                } else if(currentRole === "admin") {
-                    document.getElementById('admin-timer-display').innerText = `TIME COUNT | ${db.timeLeft.toFixed(2)}`;
-                    document.getElementById('admin-active-name').innerText = db.activeItem.name;
-                    document.getElementById('admin-active-img').style.backgroundImage = `url('${db.activeItem.img}')`;
-                    document.getElementById('gosegu-highest-price').innerText = db.currentPrice;
-                    const abox = document.getElementById('admin-log-box');
-                    if(abox) { abox.innerHTML = db.logs.map(l => `<div class="${l.cls}">${l.txt}</div>`).join(""); }
-                } else if(currentRole === "director") {
-                    document.getElementById('dir-timer-display').innerText = `TIME COUNT | ${db.timeLeft.toFixed(2)}`;
-                    document.getElementById('dir-active-name').innerText = db.activeItem.name;
-                    document.getElementById('dir-active-img').style.backgroundImage = `url('${db.activeItem.img}')`;
-                    document.getElementById('dir-highest-price').innerText = db.currentPrice;
-                    document.getElementById('dir-my-points').innerText = db.directors[currentDirKey].points;
-                    const dbox = document.getElementById('dir-log-box');
-                    if(dbox) { dbox.innerHTML = db.logs.map(l => `<div class="${l.cls}">${l.txt}</div>`).join(""); }
+                    if(currentRole === "broadcast") {
+                        document.getElementById('main-timer-display').innerText = `TIME COUNT | ${db.timeLeft.toFixed(2)}`;
+                        document.getElementById('main-active-name').innerText = db.activeItem.name;
+                        document.getElementById('main-active-img').style.backgroundImage = `url('${db.activeItem.img}')`;
+                        document.getElementById('main-log-box').innerHTML = db.logs.map(l => `<div class="${l.cls}">${l.txt}</div>`).join("");
+                    } else if(currentRole === "admin") {
+                        document.getElementById('admin-timer-display').innerText = `TIME COUNT | ${db.timeLeft.toFixed(2)}`;
+                        document.getElementById('admin-active-name').innerText = db.activeItem.name;
+                        document.getElementById('admin-active-img').style.backgroundImage = `url('${db.activeItem.img}')`;
+                        document.getElementById('gosegu-highest-price').innerText = db.currentPrice;
+                        document.getElementById('admin-log-box').innerHTML = db.logs.map(l => `<div class="${l.cls}">${l.txt}</div>`).join("");
+                    } else if(currentRole === "director") {
+                        document.getElementById('dir-timer-display').innerText = `TIME COUNT | ${db.timeLeft.toFixed(2)}`;
+                        document.getElementById('dir-active-name').innerText = db.activeItem.name;
+                        document.getElementById('dir-active-img').style.backgroundImage = `url('${db.activeItem.img}')`;
+                        document.getElementById('dir-highest-price').innerText = db.currentPrice;
+                        document.getElementById('dir-my-points').innerText = db.directors[currentDirKey].points;
+                        document.getElementById('dir-log-box').innerHTML = db.logs.map(l => `<div class="${l.cls}">${l.txt}</div>`).join("");
+                    }
                 }
-            }, 20); 
+            }, 150);
+
+            // 관리자 타이머 진행 시 차감 전송 루프
+            setInterval(() => {
+                if(currentRole === 'admin' && localTimer) {
+                    db.timeLeft -= 0.02;
+                    if(db.timeLeft <= 0) { db.timeLeft = 0; clearInterval(localTimer); localTimer = null; }
+                    fbPut(db);
+                }
+            }, 20);
         }
 
-        function emitRemoteSound(type) {
-            db.soundTrigger = { type: type, time: Date.now() };
-            saveStorage();
-        }
-
-        function syncAdminSettings() {
+        async function syncAdminSettings() {
             if(currentRole !== "admin") return;
             for(let i=0; i<4; i++){
                 db.directors[`dir${i}`].name = document.getElementById(`dir-name-${i}`).value || `감독${String.fromCharCode(65+i)}`;
@@ -780,12 +1027,11 @@
                 const imgVal = document.getElementById(`dir-img-${i}`).value.trim();
                 db.directors[`dir${i}`].img = imgVal ? imgVal : defaultDb.directors[`dir${i}`].img;
             }
-            saveStorage(); rebuildSelect(); renderAllStatic();
+            await fbPut(db); rebuildSelect(); renderAllStatic();
         }
 
         function rebuildSelect() {
-            const select = document.getElementById('active-director-select');
-            if(!select) return;
+            const select = document.getElementById('active-director-select'); if(!select) return;
             const val = select.value; select.innerHTML = "";
             for(let key in db.directors) { select.innerHTML += `<option value="${key}">${db.directors[key].name}</option>`; }
             if(val && db.directors[val]) select.value = val;
@@ -793,8 +1039,7 @@
         }
 
         function updateActiveDirectorPoints() {
-            const select = document.getElementById('active-director-select');
-            if(!select) return;
+            const select = document.getElementById('active-director-select'); if(!select) return;
             const key = select.value;
             if(key && db.directors[key]) { document.getElementById('gosegu-my-points').innerText = db.directors[key].points; }
         }
@@ -802,24 +1047,18 @@
         function renderAllStatic() {
             const targets = ['main-director-list', 'admin-director-list', 'dir-all-teams-list'];
             targets.forEach(id => {
-                const container = document.getElementById(id);
-                if(!container) return;
-                container.innerHTML = "";
-                let idx = 0;
+                const container = document.getElementById(id); if(!container) return;
+                container.innerHTML = ""; let idx = 0;
                 for(let key in db.directors) {
-                    const dir = db.directors[key];
-                    let squadHtml = "";
+                    const dir = db.directors[key]; let squadHtml = "";
                     const slots = ["팀원1", "팀원2", "팀원3", "팀원4", "팀원5"];
                     slots.forEach(s => {
                         const m = dir.squad[s];
                         squadHtml += m ? `<div class="member-slot"><div class="member-photo filled" style="background-image:url('${m.img}')"></div><div class="member-name">${m.name}</div></div>`
                                        : `<div class="member-slot"><div class="member-photo">${s}</div><div class="member-name">-</div></div>`;
                     });
-
-                    // 팀장 패널 좌측 리스트 노출 시 본인 팀 강조 표시 효과 추가
                     const isMyCard = (id === 'dir-all-teams-list' && key === currentDirKey) ? 'style="border: 2px solid #4ade80; background-color: #14233c;"' : '';
                     const myBadge = (id === 'dir-all-teams-list' && key === currentDirKey) ? '<span style="font-size:11px; background:#16a34a; padding:1px 5px; border-radius:3px; margin-left:6px; color:white;">MY</span>' : '';
-
                     container.innerHTML += `
                         <div class="director-card dir-${idx}" ${isMyCard}>
                             <div class="card-header">
@@ -839,279 +1078,180 @@
                 }
             });
 
-            if(currentRole === "director" && currentDirKey) {
-                const headerTitle = document.getElementById('dir-panel-header-title');
-                if(headerTitle) {
-                    headerTitle.innerText = `👥 ${db.directors[currentDirKey].name} 전용 실시간 입찰 패널 (3단 모드)`;
-                }
+            if(currentRole === "director" && currentDirKey && document.getElementById('dir-panel-header-title')) {
+                document.getElementById('dir-panel-header-title').innerText = `👥 ${db.directors[currentDirKey].name} 전용 실시간 입찰 패널 (원격 연결됨)`;
             }
 
-            // 우측 매물 및 유찰 리스트 연동 (방송뷰, 관리자뷰, 팀장뷰 대응)
             const mappings = [
                 { p: 'main-player-list', f: 'main-fail-list' },
                 { p: 'container-player-list', f: 'container-fail-list' },
                 { p: 'dir-player-list', f: 'dir-fail-list' }
             ];
-
             mappings.forEach(m => {
-                const pContainer = document.getElementById(m.p);
-                const fContainer = document.getElementById(m.f);
-                
+                const pContainer = document.getElementById(m.p); const fContainer = document.getElementById(m.f);
                 if(pContainer) {
-                    pContainer.innerHTML = db.playerPool.length === 0 ? `<div style="color:#475569; font-size:12px; padding:10px;">등록된 매물이 없습니다.</div>` : "";
-                    db.playerPool.forEach(p => {
-                        if(m.p === 'container-player-list') {
-                            const isSel = db.selectedPlayerId === p.id ? "selected" : "";
-                            pContainer.innerHTML += `
-                                <div class="visual-card ${isSel}" onclick="selectPlayer('${p.id}')">
-                                    <button class="btn-delete-item" onclick="deletePlayerFromPool('${p.id}', event)">X</button>
-                                    <div class="visual-avatar" style="background-image:url('${p.img}')"></div>
-                                    <div class="visual-name">${p.name}</div>
-                                </div>
-                            `;
-                        } else {
-                            pContainer.innerHTML += `<div class="visual-card"><div class="visual-avatar" style="background-image:url('${p.img}')"></div><div class="visual-name">${p.name}</div></div>`;
-                        }
-                    });
+                    pContainer.innerHTML = (!db.playerPool || db.playerPool.length === 0) ? `<div style="color:#475569; font-size:12px; padding:10px;">등록된 매물이 없습니다.</div>` : "";
+                    if(db.playerPool) {
+                        db.playerPool.forEach(p => {
+                            if(m.p === 'container-player-list') {
+                                const isSel = db.selectedPlayerId === p.id ? "selected" : "";
+                                pContainer.innerHTML += `<div class="visual-card ${isSel}" onclick="selectPlayer('${p.id}')"><button class="btn-delete-item" onclick="deletePlayerFromPool('${p.id}', event)">X</button><div class="visual-avatar" style="background-image:url('${p.img}')"></div><div class="visual-name">${p.name}</div></div>`;
+                            } else {
+                                pContainer.innerHTML += `<div class="visual-card"><div class="visual-avatar" style="background-image:url('${p.img}')"></div><div class="visual-name">${p.name}</div></div>`;
+                            }
+                        });
+                    }
                 }
-
                 if(fContainer) {
-                    fContainer.innerHTML = db.failPool.length === 0 ? `<div style="color:#475569; font-size:12px; padding:10px;">유찰된 매물이 없습니다.</div>` : "";
-                    db.failPool.forEach((p, index) => {
-                        if(m.f === 'container-fail-list') {
-                            fContainer.innerHTML += `
-                                <div class="visual-card" style="border-color:#ef4444;" onclick="recoverFailedPlayer(${index})">
-                                    <span class="badge-index">${index + 1}</span>
-                                    <div class="visual-avatar" style="background-image:url('${p.img}')"></div>
-                                    <div class="visual-name">${p.name}</div>
-                                </div>
-                            `;
-                        } else {
-                            fContainer.innerHTML += `<div class="visual-card" style="border-color:#ef4444;"><span class="badge-index">${index + 1}</span><div class="visual-avatar" style="background-image:url('${p.img}')"></div><div class="visual-name">${p.name}</div></div>`;
-                        }
-                    });
+                    fContainer.innerHTML = (!db.failPool || db.failPool.length === 0) ? `<div style="color:#475569; font-size:12px; padding:10px;">유찰된 매물이 없습니다.</div>` : "";
+                    if(db.failPool) {
+                        db.failPool.forEach((p, index) => {
+                            if(m.f === 'container-fail-list') {
+                                fContainer.innerHTML += `<div class="visual-card" style="border-color:#ef4444;" onclick="recoverFailedPlayer(${index})"><span class="badge-index">${index + 1}</span><div class="visual-avatar" style="background-image:url('${p.img}')"></div><div class="visual-name">${p.name}</div></div>`;
+                            } else {
+                                fContainer.innerHTML += `<div class="visual-card" style="border-color:#ef4444;"><span class="badge-index">${index + 1}</span><div class="visual-avatar" style="background-image:url('${p.img}')"></div><div class="visual-name">${p.name}</div></div>`;
+                            }
+                        });
+                    }
                 }
             });
-
-            if(currentRole === 'admin') {
-                updateActiveDirectorPoints();
-            }
         }
 
-        function addNewPlayerToPool() {
-            const nameInput = document.getElementById('reg-player-name');
-            let imgInput = document.getElementById('reg-player-img').value.trim();
-            if(!nameInput.value.trim()) { alert('매물 이름을 바르게 작성해주세요.'); return; }
+        async function addNewPlayerToPool() {
+            const nameInput = document.getElementById('reg-player-name'); let imgInput = document.getElementById('reg-player-img').value.trim();
+            if(!nameInput.value.trim()) return;
             if(!imgInput) { imgInput = "https://api.dicebear.com/7.x/bottts/svg?seed=" + encodeURIComponent(nameInput.value); }
-            
-            const newObj = {
-                id: "p_" + Date.now() + "_" + Math.floor(Math.random()*1000),
-                name: nameInput.value.trim(),
-                img: imgInput
-            };
-            db.playerPool.push(newObj);
-            if(!db.selectedPlayerId || db.playerPool.length === 1) { db.selectedPlayerId = newObj.id; }
+            if(!db.playerPool) db.playerPool = [];
+            const newObj = { id: "p_" + Date.now() + "_" + Math.floor(Math.random()*1000), name: nameInput.value.trim(), img: imgInput };
+            db.playerPool.push(newObj); if(!db.selectedPlayerId || db.playerPool.length === 1) { db.selectedPlayerId = newObj.id; }
             nameInput.value = ""; document.getElementById('reg-player-img').value = "";
-            saveStorage(); 
-            renderAllStatic();
+            await fbPut(db); renderAllStatic();
         }
 
-        function addBulkPlayersToPool() {
-            const area = document.getElementById('reg-bulk-names');
-            if(!area || !area.value.trim()) { alert('등록할 이름들을 입력해 주세요.'); return; }
-            
-            const lines = area.value.split('\n').filter(l => l.trim().length > 0);
-            if(lines.length === 0) return;
-
+        async function addBulkPlayersToPool() {
+            const area = document.getElementById('reg-bulk-names'); if(!area || !area.value.trim()) return;
+            const lines = area.value.split('\n').filter(l => l.trim().length > 0); if(lines.length === 0) return;
+            if(!db.playerPool) db.playerPool = [];
             let baseTime = Date.now();
-            let addedCount = 0;
-
             lines.forEach((line, idx) => {
-                const parts = line.split(',');
-                const name = parts[0].trim();
-                let img = (parts[1] && parts[1].trim()) ? parts[1].trim() : "";
-
+                const parts = line.split(','); const name = parts[0].trim(); let img = (parts[1] && parts[1].trim()) ? parts[1].trim() : "";
                 if (!name) return;
                 if(!img) { img = "https://api.dicebear.com/7.x/bottts/svg?seed=" + encodeURIComponent(name); }
-
-                db.playerPool.push({
-                    id: "p_" + (baseTime + idx) + "_" + Math.floor(Math.random()*1000),
-                    name: name,
-                    img: img
-                });
-                addedCount++;
+                db.playerPool.push({ id: "p_" + (baseTime + idx) + "_" + Math.floor(Math.random()*1000), name: name, img: img });
             });
-
             if(!db.selectedPlayerId && db.playerPool.length > 0) { db.selectedPlayerId = db.playerPool[0].id; }
-
-            area.value = ""; 
-            pushLog(`📦 [대량 등록] 총 ${addedCount}명의 매물이 대량 등록되었습니다.`, "log-divider");
-            saveStorage();
-            renderAllStatic();
-            alert(`총 ${addedCount}명이 성공적으로 추가되었습니다!`);
+            area.value = ""; pushLog(`📦 [대량 등록] 매물이 성공적으로 일괄 등록되었습니다.`, "log-divider");
+            await fbPut(db); renderAllStatic();
         }
 
-        function deletePlayerFromPool(id, event) {
+        async function deletePlayerFromPool(id, event) {
             if(event) { event.stopPropagation(); event.preventDefault(); }
             db.playerPool = db.playerPool.filter(p => p.id !== id);
-            if(db.selectedPlayerId === id) { 
-                db.selectedPlayerId = db.playerPool.length > 0 ? db.playerPool[0].id : ""; 
-            }
-            saveStorage(); 
-            renderAllStatic();
+            if(db.selectedPlayerId === id) { db.selectedPlayerId = db.playerPool.length > 0 ? db.playerPool[0].id : ""; }
+            await fbPut(db); renderAllStatic();
         }
 
-        function selectPlayer(id) {
-            if(!id) return;
-            db.selectedPlayerId = id;
-            saveStorage(); 
-            renderAllStatic();
+        async function selectPlayer(id) { if(!id) return; db.selectedPlayerId = id; await fbPut(db); renderAllStatic(); }
+
+        async function recoverFailedPlayer(index) {
+            if(!db.failPool || index < 0 || index >= db.failPool.length) return;
+            const targetPlayer = db.failPool[index]; if(!db.playerPool) db.playerPool = [];
+            const recoveredObj = { id: "p_" + Date.now() + "_" + Math.floor(Math.random()*1000), name: targetPlayer.name, img: targetPlayer.img };
+            db.playerPool.push(recoveredObj); if(!db.selectedPlayerId || db.playerPool.length === 1) { db.selectedPlayerId = recoveredObj.id; }
+            db.failPool.splice(index, 1); pushLog(`🔄 [복구] 유찰되었던 '${recoveredObj.name}' 선수가 재등록되었습니다.`, "log-divider");
+            await fbPut(db); renderAllStatic();
         }
 
-        function recoverFailedPlayer(index) {
-            if(index < 0 || index >= db.failPool.length) return;
-            const targetPlayer = db.failPool[index];
-            const recoveredObj = {
-                id: "p_" + Date.now() + "_" + Math.floor(Math.random()*1000),
-                name: targetPlayer.name,
-                img: targetPlayer.img
-            };
-            db.playerPool.push(recoveredObj);
-            if(!db.selectedPlayerId || db.playerPool.length === 1) { db.selectedPlayerId = recoveredObj.id; }
-            db.failPool.splice(index, 1);
-            pushLog(`🔄 [복구] 유찰되었던 '${recoveredObj.name}' 선수가 다시 경매 등록되었습니다.`, "log-divider");
-            saveStorage(); 
-            renderAllStatic();
-        }
-
-        function shufflePlayerPool() {
-            if(db.playerPool.length <= 1) { alert('셔플할 매물이 부족합니다.'); return; }
+        async function shufflePlayerPool() {
+            if(!db.playerPool || db.playerPool.length <= 1) return;
             for (let i = db.playerPool.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [db.playerPool[i], db.playerPool[j]] = [db.playerPool[j], db.playerPool[i]];
+                const j = Math.floor(Math.random() * (i + 1)); [db.playerPool[i], db.playerPool[j]] = [db.playerPool[j], db.playerPool[i]];
             }
-            db.selectedPlayerId = db.playerPool[0].id;
-            pushLog("🎲 전체 매물 리스트 순서가 무작위로 섞였습니다.", "log-divider");
-            saveStorage(); 
-            renderAllStatic();
+            db.selectedPlayerId = db.playerPool[0].id; pushLog("🎲 전체 매물 순서가 셔플되었습니다.", "log-divider");
+            await fbPut(db); renderAllStatic();
         }
 
-        function clearAllPlayersOnly() {
-            if(!confirm("⚠️ 현재 등록된 전체 매물 및 유찰 목록을 삭제하시겠습니까?\n(팀장 정보 및 획득한 스쿼드는 유지됩니다)")) return;
-            
-            clearInterval(localTimer);
-            db.playerPool = [];
-            db.failPool = [];
-            db.selectedPlayerId = "";
+        async function clearAllPlayersOnly() {
+            if(!confirm("⚠️ 전체 매물 및 유찰 목록을 삭제하시겠습니까?")) return;
+            clearInterval(localTimer); localTimer = null;
+            db.playerPool = []; db.failPool = []; db.selectedPlayerId = "";
             db.activeItem = { name: "대기 중", img: "https://api.dicebear.com/7.x/bottts/svg?seed=ready" };
-            db.currentPrice = 0;
-            db.currentBidder = "-";
-            db.timeLeft = 15.00;
-            
-            pushLog("🚨 [초기화] 관리자에 의해 등록된 모든 매물 목록이 제거되었습니다.", "log-fail");
-            saveStorage();
-            renderAllStatic();
-            alert("매물 명단이 초기화되었습니다.");
+            db.currentPrice = 0; db.currentBidder = "-"; db.timeLeft = 15.00;
+            pushLog("🚨 관리자에 의해 매물 보관함이 초기화되었습니다.", "log-fail");
+            await fbPut(db); renderAllStatic();
         }
 
         function triggerSequence() {
             if(currentRole !== "admin") return;
-            if(db.playerPool.length === 0) { alert("등록된 매물이 없습니다."); return; }
-            
+            if(!db.playerPool || db.playerPool.length === 0) { alert("등록된 매물이 없습니다."); return; }
             const currentSelected = db.playerPool.find(p => p.id === db.selectedPlayerId);
             const targetPlayer = currentSelected ? currentSelected : db.playerPool[0];
             db.selectedPlayerId = targetPlayer.id;
 
-            clearInterval(localTimer);
-            db.currentPrice = 0; db.currentBidder = "-";
-            db.activeItem = { name: targetPlayer.name, img: targetPlayer.img };
-            document.getElementById('gosegu-custom-input').value = 0; 
-            saveStorage(); 
-            renderAllStatic();
-            
-            let c = 3;
-            emitRemoteSound('ready_tick');
-            pushLog(`📢 ${db.activeItem.name} - 경매 개시 준비 - ${c}초`, 'log-countdown');
-            c--;
+            clearInterval(localTimer); localTimer = null;
+            db.currentPrice = 0; db.currentBidder = "-"; db.activeItem = { name: targetPlayer.name, img: targetPlayer.img };
+            document.getElementById('gosegu-custom-input').value = 0;
+
+            let c = 3; db.soundTrigger = { type: 'ready_tick', time: Date.now() };
+            db.logs.push({ txt: `📢 ${db.activeItem.name} - 경매 개시 준비 - ${c}초`, cls: 'log-countdown' });
+            fbPut(db); c--;
 
             let seq = setInterval(() => {
-                if(c > 0) { 
-                    emitRemoteSound('ready_tick');
-                    pushLog(`📢 ${db.activeItem.name} - 경매 개시 준비 - ${c}초`, 'log-countdown'); 
-                    c--; 
-                } else { 
-                    clearInterval(seq); 
-                    emitRemoteSound('start');
-                    pushLog(`🔥 ${db.activeItem.name} - 경매 시작!`, 'log-start'); 
-                    startAdminTimer(); 
+                if(c > 0) {
+                    db.soundTrigger = { type: 'ready_tick', time: Date.now() };
+                    db.logs.push({ txt: `📢 ${db.activeItem.name} - 경매 개시 준비 - ${c}초`, cls: 'log-countdown' });
+                    fbPut(db); c--;
+                } else {
+                    clearInterval(seq);
+                    db.soundTrigger = { type: 'start', time: Date.now() };
+                    db.logs.push({ txt: `🔥 ${db.activeItem.name} - 경매 시작!`, cls: 'log-start' });
+                    db.timeLeft = 15.00; fbPut(db);
+                    localTimer = true;
                 }
             }, 1000);
         }
 
-        function startAdminTimer() {
-            db.timeLeft = 15.00; 
-            clearInterval(localTimer);
-            localTimer = setInterval(() => {
-                db.timeLeft -= 0.02; 
-                if(db.timeLeft <= 0) { 
-                    db.timeLeft = 0; 
-                    clearInterval(localTimer); 
-                }
-                saveStorage();
-            }, 20);
-        }
+        function goseguAddPrice(amt) { let i = document.getElementById('gosegu-custom-input'); i.value = (parseInt(i.value) || db.currentPrice) + amt; }
+        function dirAddPrice(amt) { let i = document.getElementById('dir-custom-input'); i.value = (parseInt(i.value) || db.currentPrice) + amt; }
 
-        function goseguAddPrice(amt) {
-            let i = document.getElementById('gosegu-custom-input');
-            let basePrice = parseInt(i.value) || db.currentPrice;
-            i.value = basePrice + amt;
-        }
-
-        function dirAddPrice(amt) {
-            let i = document.getElementById('dir-custom-input');
-            let basePrice = parseInt(i.value) || db.currentPrice;
-            i.value = basePrice + amt;
-        }
-
-        function goseguSubmitBid(type) {
-            if(db.timeLeft <= 0) { alert("시간이 종료되었습니다."); return; }
-            if(db.activeItem.name === "대기 중") { alert("시작된 경매가 없습니다."); return; }
-            
+        async function goseguSubmitBid(type) {
+            if(db.timeLeft <= 0 || db.activeItem.name === "대기 중") return;
             const key = (type === 'admin') ? document.getElementById('active-director-select').value : currentDirKey;
             const inputId = (type === 'admin') ? 'gosegu-custom-input' : 'dir-custom-input';
             const price = parseInt(document.getElementById(inputId).value);
 
-            if(price <= db.currentPrice) { alert("현재 최고가보다 높은 금액이어야 합니다."); return; }
-            if(price > db.directors[key].points) { alert("보유 포인트가 부족합니다."); return; }
+            if(price <= db.currentPrice) { alert("현재 최고가보다 높아야 합니다."); return; }
+            if(price > db.directors[key].points) { alert("포인트가 부족합니다."); return; }
 
-            db.currentPrice = price; db.currentBidder = key; 
-            db.timeLeft = 15.00; 
-            emitRemoteSound('bid'); 
-            pushLog(`📢 ${db.directors[key].name} - ${db.activeItem.name} [${price}P] 입찰!`, 'log-bid');
-            saveStorage();
+            db.currentPrice = price; db.currentBidder = key; db.timeLeft = 15.00;
+            db.soundTrigger = { type: 'bid', time: Date.now() };
+            db.logs.push({ txt: `📢 ${db.directors[key].name} - ${db.activeItem.name} [${price}P] 입찰!`, cls: 'log-bid' });
+            await fbPut(db);
         }
 
-        function closeAuction() {
+        async function closeAuction() {
             if(db.activeItem.name === "대기 중" || db.currentBidder === "-") return;
-            clearInterval(localTimer);
+            clearInterval(localTimer); localTimer = null;
             const autoSlot = getAutoEmptySlot(db.currentBidder);
-            if(autoSlot === null) { alert("스쿼드가 가득 찼습니다."); return; }
+            if(autoSlot === null) return;
 
             db.directors[db.currentBidder].points -= db.currentPrice;
+            if(!db.directors[db.currentBidder].squad) db.directors[db.currentBidder].squad = {};
             db.directors[db.currentBidder].squad[autoSlot] = { name: db.activeItem.name, img: db.activeItem.img };
-            emitRemoteSound('success'); 
-            pushLog(`🎉 [낙찰] ${db.directors[db.currentBidder].name} 팀 -> ${db.activeItem.name} 영입! (${db.currentPrice}P)`, 'log-start');
-            
+
+            db.soundTrigger = { type: 'success', time: Date.now() };
+            db.logs.push({ txt: `🎉 [낙찰] ${db.directors[db.currentBidder].name} 팀 -> ${db.activeItem.name} 영입! (${db.currentPrice}P)`, cls: 'log-start' });
             db.playerPool = db.playerPool.filter(p => p.name !== db.activeItem.name);
             db.selectedPlayerId = db.playerPool.length > 0 ? db.playerPool[0].id : "";
             resetAuctionState();
         }
 
-        function failAuction() {
+        async function failAuction() {
             if(db.activeItem.name === "대기 중") return;
-            clearInterval(localTimer);
-            emitRemoteSound('fail'); 
-            pushLog(`❌ ${db.activeItem.name} 선수가 유찰되었습니다.`, 'log-fail');
+            clearInterval(localTimer); localTimer = null;
+            db.soundTrigger = { type: 'fail', time: Date.now() };
+            db.logs.push({ txt: `❌ ${db.activeItem.name} 선수가 유찰되었습니다.`, cls: 'log-fail' });
+            if(!db.failPool) db.failPool = [];
             db.failPool.push({ name: db.activeItem.name, img: db.activeItem.img });
             db.playerPool = db.playerPool.filter(p => p.name !== db.activeItem.name);
             db.selectedPlayerId = db.playerPool.length > 0 ? db.playerPool[0].id : "";
@@ -1119,11 +1259,10 @@
         }
 
         function resetAuctionState() {
-            pushLog(`------------- 다음 경매 대기중 -------------`, 'log-divider');
+            db.logs.push({ txt: `------------- 다음 경매 대기중 -------------`, cls: 'log-divider' });
             db.activeItem = { name: "대기 중", img: "https://api.dicebear.com/7.x/bottts/svg?seed=ready" };
             db.currentPrice = 0; db.currentBidder = "-"; db.timeLeft = 15.00;
-            saveStorage(); 
-            renderAllStatic();
+            fbPut(db); renderAllStatic();
         }
 
         function getAutoEmptySlot(directorKey) {
@@ -1132,10 +1271,10 @@
             return null;
         }
 
-        function pushLog(text, className) { db.logs.push({ txt: text, cls: className }); saveStorage(); }
+        function pushLog(txt, cls) { if(!db.logs) db.logs = []; db.logs.push({ txt, cls }); }
 
         function resetAllData() {
-            if(confirm('데이터를 완전히 초기화하겠습니까? (팀 정보, 포인트, 스쿼드 전반 초기화)')) { localStorage.removeItem("ham_shared_db"); location.reload(); }
+            if(confirm('데이터베이스를 완전히 초기화하시겠습니까?')) { fbPut(defaultDb).then(() => location.reload()); }
         }
 
         window.onload = init;

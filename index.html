@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>햄부기햄스터 경매 프로그램 (Firebase 실시간 원격 연동 완료)</title>
+    <title>햄부기햄스터 경매 프로그램 (렉 제로 버전)</title>
     <style>
         body {
             font-family: 'Malgun Gothic', sans-serif;
@@ -16,7 +16,6 @@
             box-sizing: border-box;
         }
 
-        /* 뷰어 제어 시스템 (라우팅) */
         .view-section {
             display: none;
             width: 100%;
@@ -38,7 +37,6 @@
             display: flex;
         }
 
-        /* 상단 네비게이션 바 스타일 */
         .nav-bar {
             display: flex;
             align-items: center;
@@ -67,7 +65,6 @@
                 background-color: #475569;
             }
 
-        /* 전체 3단 분할 및 레이아웃 시스템 */
         .layout-container {
             display: flex;
             width: 100%;
@@ -76,10 +73,9 @@
             overflow: hidden;
         }
 
-        /* [1구역] 팀 목록 존 (좌측) - 최소 너비 보장하도록 수정 */
         .team-zone {
             flex: 1.4;
-            min-width: 380px; /* 무조건 보이도록 최소 너비 강제 고정 */
+            min-width: 380px;
             display: flex;
             flex-direction: column;
             gap: 12px;
@@ -237,7 +233,6 @@
             text-align: center;
         }
 
-        /* [2구역] 경매창 존 (중앙) */
         .auction-zone {
             flex: 1;
             min-width: 320px;
@@ -418,7 +413,6 @@
                 background-color: #3b82f6;
             }
 
-        /* [3구역] 비주얼 매물 및 유찰 리스트 구역 */
         .list-zone {
             flex: 1.1;
             min-width: 280px;
@@ -537,7 +531,6 @@
                 color: white;
             }
 
-        /* [4구역] 관리 제어 스크린 존 */
         .admin-zone {
             flex: 1.2;
             min-width: 320px;
@@ -681,9 +674,10 @@
 </head>
 <body>
 
+    <!-- Lobby Screen -->
     <div id="lobby" style="display: none;">
         <h1 style="color:#3b82f6; margin-bottom: 0px;">🍔 햄부기햄스터 경매 시스템</h1>
-        <p style="color:#64748b; margin-bottom: 15px;">원하는 모드를 선택하세요. Firebase 원격 서버를 통해 전 세계 실시간 동기화됩니다.</p>
+        <p style="color:#64748b; margin-bottom: 15px;">원하는 모드를 선택하세요. 완전 실시간 최적화 버전</p>
         <button class="lobby-btn" style="background-color:#16a34a;" onclick="goPage('admin')">🛠️ 1. 메인 통합 제어 화면 <span>열기 ▶</span></button>
         <button class="lobby-btn" style="background-color:#eab308; color:black;" onclick="goPage('broadcast')">📺 2. 디코 방송 송출 전용 창 <span>열기 ▶</span></button>
 
@@ -699,6 +693,7 @@
         <button class="lobby-btn" style="background-color:#334155; width:340px; font-size:12px; margin-top:20px;" onclick="resetAllData()">🔄 데이터 전체 포맷 초기화</button>
     </div>
 
+    <!-- Broadcast View -->
     <div id="broadcast-view" class="view-section">
         <div class="nav-bar">
             <button class="btn-home" onclick="goPage('')">🏠 메인 로비로 이동</button>
@@ -730,6 +725,7 @@
         </div>
     </div>
 
+    <!-- Admin View -->
     <div id="admin-view" class="view-section">
         <div class="nav-bar">
             <button class="btn-home" onclick="goPage('')">🏠 메인 로비로 이동</button>
@@ -778,7 +774,7 @@
                 </div>
             </div>
             <div class="admin-zone">
-                <h2>🛠️ 제어 컨트롤 패널</h2>
+                <h2>🛠️ 제어 패널</h2>
                 <div class="admin-section">
                     <h3>👥 1. 팀장명, 초기 포인트, 프로필 설정</h3>
                     <table class="setting-table">
@@ -821,6 +817,7 @@
         </div>
     </div>
 
+    <!-- Director View -->
     <div id="director-view" class="view-section">
         <div class="nav-bar">
             <button class="btn-home" onclick="goPage('')">🏠 메인 로비로 이동</button>
@@ -879,7 +876,8 @@
             },
             currentPrice: 0,
             currentBidder: "-",
-            timeLeft: 15.00,
+            timerEndsAt: 0,
+            isTimerRunning: false,
             logs: [{ txt: "------------- 다음 경매 대기중 -------------", cls: "log-divider" }],
             playerPool: [],
             failPool: [],
@@ -889,7 +887,6 @@
         };
 
         let db = JSON.parse(JSON.stringify(defaultDb));
-        let localTimer = null;
         let currentRole = "";
         let currentDirKey = "";
         let lastPlayedTriggerTime = 0;
@@ -958,58 +955,76 @@
                 renderAllStatic();
             }
 
-            // 원격 폴링 루프
+            // 폴링 주기 300ms로 최적화 조정
             setInterval(async () => {
                 const remote = await fbGet();
                 if(remote && remote.directors) {
+                    // 불필요한 DOM 리렌더링 완벽 방지를 위한 딥 체킹 가드
                     let isChanged = JSON.stringify(db.directors) !== JSON.stringify(remote.directors) ||
-                                    JSON.stringify(db.playerPool) !== JSON.stringify(remote.playerPool) ||
-                                    JSON.stringify(db.failPool) !== JSON.stringify(remote.failPool) ||
-                                    db.selectedPlayerId !== remote.selectedPlayerId;
+                                    JSON.stringify(db.playerPool || []) !== JSON.stringify(remote.playerPool || []) ||
+                                    JSON.stringify(db.failPool || []) !== JSON.stringify(remote.failPool || []) ||
+                                    db.selectedPlayerId !== remote.selectedPlayerId ||
+                                    db.currentPrice !== remote.currentPrice ||
+                                    db.currentBidder !== remote.currentBidder ||
+                                    JSON.stringify(db.logs || []) !== JSON.stringify(remote.logs || []);
 
-                    db = remote;
+                    db.directors = remote.directors;
+                    db.playerPool = remote.playerPool || [];
+                    db.failPool = remote.failPool || [];
+                    db.selectedPlayerId = remote.selectedPlayerId || "";
+                    db.activeItem = remote.activeItem || { name: "대기 중", img: "" };
+                    db.currentPrice = remote.currentPrice !== undefined ? remote.currentPrice : 0;
+                    db.currentBidder = remote.currentBidder || "-";
+                    db.logs = remote.logs || [];
+                    db.timerEndsAt = remote.timerEndsAt || 0;
+                    db.isTimerRunning = remote.isTimerRunning || false;
+
+                    // 상태 변화가 감지되었을 때만 딱 한 번 무겁게 화면을 갱신 (렉 완벽 제거)
                     if(isChanged) renderAllStatic();
 
-                    if (db.soundTrigger && db.soundTrigger.time > lastPlayedTriggerTime) {
-                        playTone(db.soundTrigger.type);
-                        lastPlayedTriggerTime = db.soundTrigger.time;
-                    }
-                    if (db.timeLeft > 0 && db.timeLeft <= 5.05) {
-                        let currentSecInt = Math.ceil(db.timeLeft);
-                        if (currentSecInt !== lastSecondsInt && currentSecInt > 0) {
-                            playTone('warn_tick'); lastSecondsInt = currentSecInt;
-                        }
-                    } else if (db.timeLeft > 5.05 || db.timeLeft <= 0) { lastSecondsInt = 15; }
-
-                    if(currentRole === "broadcast") {
-                        document.getElementById('main-timer-display').innerText = `TIME COUNT | ${db.timeLeft.toFixed(2)}`;
-                        document.getElementById('main-active-name').innerText = db.activeItem ? db.activeItem.name : "대기 중";
-                        document.getElementById('main-active-img').style.backgroundImage = `url('${db.activeItem ? db.activeItem.img : ''}')`;
-                        document.getElementById('main-log-box').innerHTML = db.logs ? db.logs.map(l => `<div class="${l.cls}">${l.txt}</div>`).join("") : "";
-                    } else if(currentRole === "admin") {
-                        document.getElementById('admin-timer-display').innerText = `TIME COUNT | ${db.timeLeft.toFixed(2)}`;
-                        document.getElementById('admin-active-name').innerText = db.activeItem ? db.activeItem.name : "대기 중";
-                        document.getElementById('admin-active-img').style.backgroundImage = `url('${db.activeItem ? db.activeItem.img : ''}')`;
-                        document.getElementById('gosegu-highest-price').innerText = db.currentPrice;
-                        document.getElementById('admin-log-box').innerHTML = db.logs ? db.logs.map(l => `<div class="${l.cls}">${l.txt}</div>`).join("") : "";
-                    } else if(currentRole === "director") {
-                        document.getElementById('dir-timer-display').innerText = `TIME COUNT | ${db.timeLeft.toFixed(2)}`;
-                        document.getElementById('dir-active-name').innerText = db.activeItem ? db.activeItem.name : "대기 중";
-                        document.getElementById('dir-active-img').style.backgroundImage = `url('${db.activeItem ? db.activeItem.img : ''}')`;
-                        document.getElementById('dir-highest-price').innerText = db.currentPrice;
-                        if(db.directors && db.directors[currentDirKey]) {
-                            document.getElementById('dir-my-points').innerText = db.directors[currentDirKey].points;
-                        }
-                        document.getElementById('dir-log-box').innerHTML = db.logs ? db.logs.map(l => `<div class="${l.cls}">${l.txt}</div>`).join("") : "";
+                    if (remote.soundTrigger && remote.soundTrigger.time > lastPlayedTriggerTime) {
+                        playTone(remote.soundTrigger.type);
+                        lastPlayedTriggerTime = remote.soundTrigger.time;
                     }
                 }
-            }, 150);
+            }, 300);
 
+            // 실시간 카운트다운 초정밀 갱신 루프 (20ms 간격, 단순 글자 업데이트로 브라우저 부하 없음)
             setInterval(() => {
-                if(currentRole === 'admin' && localTimer) {
-                    db.timeLeft -= 0.02;
-                    if(db.timeLeft <= 0) { db.timeLeft = 0; clearInterval(localTimer); localTimer = null; }
-                    fbPut(db);
+                let localTimeLeft = 15.00;
+                if (db.isTimerRunning && db.timerEndsAt > 0) {
+                    const diff = db.timerEndsAt - Date.now();
+                    localTimeLeft = diff <= 0 ? 0 : diff / 1000;
+
+                    let currentSecInt = Math.ceil(localTimeLeft);
+                    if (localTimeLeft <= 5.0 && currentSecInt !== lastSecondsInt && currentSecInt > 0) {
+                        playTone('warn_tick'); lastSecondsInt = currentSecInt;
+                    } else if (localTimeLeft > 5.0) { lastSecondsInt = 15; }
+                }
+
+                const timeStr = `TIME COUNT | ${localTimeLeft.toFixed(2)}`;
+                const currentLogs = db.logs || [];
+
+                if(currentRole === "broadcast" && document.getElementById('main-timer-display')) {
+                    document.getElementById('main-timer-display').innerText = timeStr;
+                    document.getElementById('main-active-name').innerText = db.activeItem ? db.activeItem.name : "대기 중";
+                    document.getElementById('main-active-img').style.backgroundImage = `url('${db.activeItem ? db.activeItem.img : ''}')`;
+                    document.getElementById('main-log-box').innerHTML = currentLogs.map(l => `<div class="${l.cls}">${l.txt}</div>`).join("");
+                } else if(currentRole === "admin" && document.getElementById('admin-timer-display')) {
+                    document.getElementById('admin-timer-display').innerText = timeStr;
+                    document.getElementById('admin-active-name').innerText = db.activeItem ? db.activeItem.name : "대기 중";
+                    document.getElementById('admin-active-img').style.backgroundImage = `url('${db.activeItem ? db.activeItem.img : ''}')`;
+                    document.getElementById('gosegu-highest-price').innerText = db.currentPrice;
+                    document.getElementById('admin-log-box').innerHTML = currentLogs.map(l => `<div class="${l.cls}">${l.txt}</div>`).join("");
+                } else if(currentRole === "director" && document.getElementById('dir-timer-display')) {
+                    document.getElementById('dir-timer-display').innerText = timeStr;
+                    document.getElementById('dir-active-name').innerText = db.activeItem ? db.activeItem.name : "대기 중";
+                    document.getElementById('dir-active-img').style.backgroundImage = `url('${db.activeItem ? db.activeItem.img : ''}')`;
+                    document.getElementById('dir-highest-price').innerText = db.currentPrice;
+                    if(db.directors && db.directors[currentDirKey]) {
+                        document.getElementById('dir-my-points').innerText = db.directors[currentDirKey].points;
+                    }
+                    document.getElementById('dir-log-box').innerHTML = currentLogs.map(l => `<div class="${l.cls}">${l.txt}</div>`).join("");
                 }
             }, 20);
         }
@@ -1142,7 +1157,7 @@
 
         async function deletePlayerFromPool(id, event) {
             if(event) { event.stopPropagation(); event.preventDefault(); }
-            db.playerPool = db.playerPool.filter(p => p.id !== id);
+            db.playerPool = (db.playerPool || []).filter(p => p.id !== id);
             if(db.selectedPlayerId === id) { db.selectedPlayerId = db.playerPool.length > 0 ? db.playerPool[0].id : ""; }
             await fbPut(db); renderAllStatic();
         }
@@ -1154,7 +1169,7 @@
             const targetPlayer = db.failPool[index]; if(!db.playerPool) db.playerPool = [];
             const recoveredObj = { id: "p_" + Date.now() + "_" + Math.floor(Math.random()*1000), name: targetPlayer.name, img: targetPlayer.img };
             db.playerPool.push(recoveredObj); if(!db.selectedPlayerId || db.playerPool.length === 1) { db.selectedPlayerId = recoveredObj.id; }
-            db.failPool.splice(index, 1); pushLog(`🔄 [복구] 유찰되었던 '${recoveredObj.name}' 선수가 재등록되었습니다.`, "log-divider");
+            db.failPool.splice(index, 1);
             await fbPut(db); renderAllStatic();
         }
 
@@ -1169,10 +1184,9 @@
 
         async function clearAllPlayersOnly() {
             if(!confirm("⚠️ 전체 매물 및 유찰 목록을 삭제하시겠습니까?")) return;
-            clearInterval(localTimer); localTimer = null;
             db.playerPool = []; db.failPool = []; db.selectedPlayerId = "";
             db.activeItem = { name: "대기 중", img: "https://api.dicebear.com/7.x/bottts/svg?seed=ready" };
-            db.currentPrice = 0; db.currentBidder = "-"; db.timeLeft = 15.00;
+            db.currentPrice = 0; db.currentBidder = "-"; db.timerEndsAt = 0; db.isTimerRunning = false;
             pushLog("🚨 관리자에 의해 매물 보관함이 초기화되었습니다.", "log-fail");
             await fbPut(db); renderAllStatic();
         }
@@ -1184,9 +1198,10 @@
             const targetPlayer = currentSelected ? currentSelected : db.playerPool[0];
             db.selectedPlayerId = targetPlayer.id;
 
-            clearInterval(localTimer); localTimer = null;
             db.currentPrice = 0; db.currentBidder = "-"; db.activeItem = { name: targetPlayer.name, img: targetPlayer.img };
+            db.isTimerRunning = false; db.timerEndsAt = 0;
             document.getElementById('gosegu-custom-input').value = 0;
+            if(document.getElementById('dir-custom-input')) document.getElementById('dir-custom-input').value = 0;
 
             let c = 3; db.soundTrigger = { type: 'ready_tick', time: Date.now() };
             db.logs.push({ txt: `📢 ${db.activeItem.name} - 경매 개시 준비 - ${c}초`, cls: 'log-countdown' });
@@ -1201,8 +1216,10 @@
                     clearInterval(seq);
                     db.soundTrigger = { type: 'start', time: Date.now() };
                     db.logs.push({ txt: `🔥 ${db.activeItem.name} - 경매 시작!`, cls: 'log-start' });
-                    db.timeLeft = 15.00; fbPut(db);
-                    localTimer = true;
+
+                    db.timerEndsAt = Date.now() + 15000;
+                    db.isTimerRunning = true;
+                    fbPut(db);
                 }
             }, 1000);
         }
@@ -1210,8 +1227,14 @@
         function goseguAddPrice(amt) { let i = document.getElementById('gosegu-custom-input'); i.value = (parseInt(i.value) || db.currentPrice) + amt; }
         function dirAddPrice(amt) { let i = document.getElementById('dir-custom-input'); i.value = (parseInt(i.value) || db.currentPrice) + amt; }
 
+        // [체감 렉 완전 해결] Optimistic UI 최적화 적용
         async function goseguSubmitBid(type) {
-            if(db.timeLeft <= 0 || !db.activeItem || db.activeItem.name === "대기 중") return;
+            let localTimeLeft = 15.00;
+            if (db.isTimerRunning && db.timerEndsAt > 0) {
+                localTimeLeft = (db.timerEndsAt - Date.now()) / 1000;
+            }
+            if(!db.activeItem || db.activeItem.name === "대기 중" || localTimeLeft <= 0 || !db.isTimerRunning) return;
+
             const key = (type === 'admin') ? document.getElementById('active-director-select').value : currentDirKey;
             const inputId = (type === 'admin') ? 'gosegu-custom-input' : 'dir-custom-input';
             const price = parseInt(document.getElementById(inputId).value);
@@ -1219,17 +1242,26 @@
             if(price <= db.currentPrice) { alert("현재 최고가보다 높아야 합니다."); return; }
             if(price > db.directors[key].points) { alert("포인트가 부족합니다."); return; }
 
-            db.currentPrice = price; db.currentBidder = key; db.timeLeft = 15.00;
+            // 1. 로컬 변수에 먼저 값을 0.001초 만에 바로 세팅
+            db.currentPrice = price;
+            db.currentBidder = key;
+            db.timerEndsAt = Date.now() + 15000;
             db.soundTrigger = { type: 'bid', time: Date.now() };
             db.logs.push({ txt: `📢 ${db.directors[key].name} - ${db.activeItem.name} [${price}P] 입찰!`, cls: 'log-bid' });
-            await fbPut(db);
+
+            // 2. 서버 전송을 대기하지 않고 내 화면부터 강제로 바로 갱신 (렉 해결의 핵심)
+            if(document.getElementById('gosegu-highest-price')) document.getElementById('gosegu-highest-price').innerText = price;
+            if(document.getElementById('dir-highest-price')) document.getElementById('dir-highest-price').innerText = price;
+            renderAllStatic();
+
+            // 3. 백그라운드로 데이터 동기화 전송
+            fbPut(db);
         }
 
         async function closeAuction() {
             if(!db.activeItem || db.activeItem.name === "대기 중" || db.currentBidder === "-") return;
-            clearInterval(localTimer); localTimer = null;
             const autoSlot = getAutoEmptySlot(db.currentBidder);
-            if(autoSlot === null) return;
+            if(autoSlot === null) { alert("해당 팀의 스쿼드가 가득 찼습니다!"); return; }
 
             db.directors[db.currentBidder].points -= db.currentPrice;
             if(!db.directors[db.currentBidder].squad) db.directors[db.currentBidder].squad = {};
@@ -1237,28 +1269,35 @@
 
             db.soundTrigger = { type: 'success', time: Date.now() };
             db.logs.push({ txt: `🎉 [낙찰] ${db.directors[db.currentBidder].name} 팀 -> ${db.activeItem.name} 영입! (${db.currentPrice}P)`, cls: 'log-start' });
-            db.playerPool = db.playerPool.filter(p => p.name !== db.activeItem.name);
+            db.playerPool = (db.playerPool || []).filter(p => p.name !== db.activeItem.name);
             db.selectedPlayerId = db.playerPool.length > 0 ? db.playerPool[0].id : "";
-            resetAuctionState();
+
+            resetAuctionStateLocal();
         }
 
         async function failAuction() {
             if(!db.activeItem || db.activeItem.name === "대기 중") return;
-            clearInterval(localTimer); localTimer = null;
+
             db.soundTrigger = { type: 'fail', time: Date.now() };
             db.logs.push({ txt: `❌ ${db.activeItem.name} 선수가 유찰되었습니다.`, cls: 'log-fail' });
             if(!db.failPool) db.failPool = [];
             db.failPool.push({ name: db.activeItem.name, img: db.activeItem.img });
-            db.playerPool = db.playerPool.filter(p => p.name !== db.activeItem.name);
+            db.playerPool = (db.playerPool || []).filter(p => p.name !== db.activeItem.name);
             db.selectedPlayerId = db.playerPool.length > 0 ? db.playerPool[0].id : "";
-            resetAuctionState();
+
+            resetAuctionStateLocal();
         }
 
-        function resetAuctionState() {
+        function resetAuctionStateLocal() {
+            if(!db.logs) db.logs = [];
             db.logs.push({ txt: `------------- 다음 경매 대기중 -------------`, cls: 'log-divider' });
             db.activeItem = { name: "대기 중", img: "https://api.dicebear.com/7.x/bottts/svg?seed=ready" };
-            db.currentPrice = 0; db.currentBidder = "-"; db.timeLeft = 15.00;
-            fbPut(db); renderAllStatic();
+            db.currentPrice = 0; db.currentBidder = "-"; db.timerEndsAt = 0; db.isTimerRunning = false;
+
+            renderAllStatic();
+            if(currentRole === "admin") { rebuildSelect(); }
+
+            fbPut(db);
         }
 
         function getAutoEmptySlot(directorKey) {

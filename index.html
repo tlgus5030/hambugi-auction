@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>햄부기햄스터 경매 프로그램</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Lobby Screen -->
+    <div id="lobby" style="display: none;">
+        <h1 style="color:#3b82f6; margin-bottom: 0px;">🍔 햄부기햄스터 경매 시스템</h1>
+        <p id="lobby-tournament-title" style="color:#64748b; margin-bottom: 15px;"> 🏆 제 [3]회 [햄부기 햄스터] 개최 🏆</p>
+        <button class="lobby-btn" style="background-color:#16a34a;" onclick="goPage('admin')">🛠️ 1. 메인 통합 제어 화면 <span>열기 ▶</span></button>
+        <button class="lobby-btn" style="background-color:#eab308; color:black;" onclick="goPage('broadcast')">📺 2. 디코 방송 송출 전용 창 <span>열기 ▶</span></button>
+
+        <div style="width: 340px; border-top: 1px solid #1e293b; margin: 10px 0; padding-top: 10px;">
+            <p style="font-size: 13px; color: #94a3b8; margin: 0 0 8px 0; font-weight: bold;">👥 3. 각 팀장 전용 독립 입찰 링크 패널</p>
+            <div class="dir-grid">
+                <button id="lobby-dir-btn-0" style="background-color:#1c3d27;" onclick="goPage('dir0')">💚 팀장 A 패널</button>
+                <button id="lobby-dir-btn-1" style="background-color:#1d3557;" onclick="goPage('dir1')">💙 팀장 B 패널</button>
+                <button id="lobby-dir-btn-2" style="background-color:#3d1c5c;" onclick="goPage('dir2')">💜 팀장 C 패널</button>
+                <button id="lobby-dir-btn-3" style="background-color:#5c311c;" onclick="goPage('dir3')">🧡 팀장 D 패널</button>
+            </div>
+        </div>
+        <button class="lobby-btn" style="background-color:#334155; width:340px; font-size:12px; margin-top:20px;" onclick="resetAllData()">🔄 데이터 전체 포맷 초기화</button>
+    </div>
+
+    <!-- Broadcast View -->
+    <div id="broadcast-view" class="view-section">
+        <div class="nav-bar">
+            <button class="btn-home" onclick="goPage('')">🏠 메인 로비로 이동</button>
+            <span style="margin-left:15px; font-size:13px; font-weight:bold; color:#eab308;">📺 디코 방송 송출 전용 모드</span>
+        </div>
+        <div class="layout-container">
+            <div class="team-zone" id="main-director-list"></div>
+            <div class="auction-zone">
+                <div class="active-item-panel">
+                    <div class="active-item-avatar" id="main-active-img" style="background-image:url('https://api.dicebear.com/7.x/bottts/svg?seed=ready')"></div>
+                    <div class="active-item-info">
+                        <span class="active-item-label">CURRENT AUCTION PLAYER</span>
+                        <span class="active-item-name" id="main-active-name">대기 중</span>
+                    </div>
+                </div>
+                <div class="log-box" id="main-log-box">------------- 다음 경매 대기중 -------------</div>
+                <div class="time-count" id="main-timer-display">TIME COUNT | 15.00</div>
+            </div>
+            <div class="list-zone">
+                <div class="list-section" style="flex: 2;">
+                    <h3>
+                        <span>📋 전체 등록 매물 리스트</span>
+                        <span style="font-size: 11px; color: #64748b;"></span>
+                    </h3>
+                    <div class="visual-grid" id="main-player-list"></div>
+                </div>
+                <div class="list-section" style="flex: 1; min-height: 120px;">
+                    <h3>
+                        <span style="color: #ef4444;">❌ 유찰된 매물 목록</span>
+                        <span style="font-size: 11px; color: #64748b;"></span>
+                    </h3>
+                    <div class="visual-grid" id="main-fail-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin View -->
+    <div id="admin-view" class="view-section">
+        <div class="nav-bar">
+            <button class="btn-home" onclick="goPage('')">🏠 메인 로비로 이동</button>
+            <span style="margin-left:15px; font-size:13px; font-weight:bold; color:#3b82f6;">🛠️ 메인 통합 제어 컨트롤러 모드</span>
+        </div>
+        <div class="layout-container">
+            <div class="team-zone" id="admin-director-list"></div>
+            <div class="auction-zone">
+                <div class="active-item-panel">
+                    <div class="active-item-avatar" id="admin-active-img" style="background-image:url('https://api.dicebear.com/7.x/bottts/svg?seed=ready')"></div>
+                    <div class="active-item-info">
+                        <span class="active-item-label">CURRENT AUCTION PLAYER</span>
+                        <span class="active-item-name" id="admin-active-name">대기 중</span>
+                    </div>
+                </div>
+                <div class="log-box" id="admin-log-box">------------- 다음 경매 대기중 -------------</div>
+                <div class="time-count" id="admin-timer-display">TIME COUNT | 15.00</div>
+                <div class="gosegu-bid-panel">
+                    <div style="display:flex; gap: 8px; align-items:center;">
+                        <select id="active-director-select" onchange="updateActiveDirectorPoints()" style="background-color:#050a12; color:white; border:1px solid #233554; padding:4px; border-radius:4px; font-size:12px; width:45%;">
+                        </select>
+                        <span style="font-size:11px; color:#64748b;">← 관리자 대리 입찰 선택</span>
+                    </div>
+                    <div class="gosegu-row-bg">잔여 포인트 | <span id="gosegu-my-points">1000</span></div>
+                    <div class="gosegu-price-window" id="gosegu-highest-price">0</div>
+                    <div class="gosegu-btn-grid">
+                        <button onclick="goseguAddPrice(5)">+5</button>
+                        <button onclick="goseguAddPrice(10)">+10</button>
+                        <button onclick="goseguAddPrice(50)">+50</button>
+                        <button onclick="goseguAddPrice(100)">+100</button>
+                    </div>
+                    <div class="gosegu-submit-row">
+                        <input type="number" id="gosegu-custom-input" value="0">
+                        <button class="gosegu-btn-submit" onclick="goseguSubmitBid('admin')">제출</button>
+                    </div>
+                </div>
+            </div>
+            <div class="list-zone">
+                <div class="list-section" style="flex: 2;">
+                    <h3>
+                        <span>📋 전체 등록 매물 리스트</span>
+                        <span style="font-size: 11px; color: #64748b;">(클릭 시 선택됨)</span>
+                    </h3>
+                    <div class="visual-grid" id="container-player-list"></div>
+                </div>
+                <div class="list-section" style="flex: 1; min-height: 120px;">
+                    <h3>
+                        <span style="color: #ef4444;">❌ 유찰된 매물 목록</span>
+                        <span style="font-size: 11px; color: #4ade80;">(클릭 시 경매 복구)</span>
+                    </h3>
+                    <div class="visual-grid" id="container-fail-list"></div>
+                </div>
+            </div>
+            <div class="admin-zone">
+                <h2>🛠️ 제어 패널</h2>
+                <div class="admin-section">
+                    <h3>🏆 대회 타이틀 설정</h3>
+                    <input type="text" id="tournament-title-input" value="제 [3]회 [햄부기 햄스터] 개최" onchange="syncAdminSettings()" placeholder="예: 제 1회 OO배 내전">
+                </div>
+                <div class="admin-section">
+                    <h3>👥 1. 팀장명, 초기 포인트, 프로필 설정</h3>
+                    <table class="setting-table">
+                        <thead><tr><th>구분</th><th>팀장 이름</th><th>포인트</th><th>프로필 URL</th></tr></thead>
+                        <tbody>
+                            <tr><td>#A</td><td><input type="text" id="dir-name-0" value="감독A" onchange="syncAdminSettings()"></td><td><input type="number" id="dir-pt-0" value="1000" onchange="syncAdminSettings()"></td><td><input type="text" id="dir-img-0" onchange="syncAdminSettings()"></td></tr>
+                            <tr><td>#B</td><td><input type="text" id="dir-name-1" value="감독B" onchange="syncAdminSettings()"></td><td><input type="number" id="dir-pt-1" value="1000" onchange="syncAdminSettings()"></td><td><input type="text" id="dir-img-1" onchange="syncAdminSettings()"></td></tr>
+                            <tr><td>#C</td><td><input type="text" id="dir-name-2" value="감독C" onchange="syncAdminSettings()"></td><td><input type="number" id="dir-pt-2" value="1000" onchange="syncAdminSettings()"></td><td><input type="text" id="dir-img-2" onchange="syncAdminSettings()"></td></tr>
+                            <tr><td>#D</td><td><input type="text" id="dir-name-3" value="감독D" onchange="syncAdminSettings()"></td><td><input type="number" id="dir-pt-3" value="1000" onchange="syncAdminSettings()"></td><td><input type="text" id="dir-img-3" onchange="syncAdminSettings()"></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="admin-section">
+                    <h3>📦 2. 사전 매물 추가 보관함</h3>
+                    <div style="display:flex; flex-direction:column; gap:4px; margin-bottom: 8px;">
+                        <input type="text" id="reg-player-name" placeholder="매물 이름">
+                        <input type="text" id="reg-player-img" placeholder="이미지 주소 (옵션)">
+                        <button style="background-color: #3b82f6; color:white;" onclick="addNewPlayerToPool()">➕ 단일 매물 등록</button>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:4px; border-top: 1px solid #2d3f5d; padding-top: 6px;">
+                        <textarea id="reg-bulk-names" rows="2" placeholder="이름, 이미지주소 (엔터 구분)"></textarea>
+                        <button style="background-color: #eab308; color:black;" onclick="addBulkPlayersToPool()">⚡ 일괄 등록</button>
+                    </div>
+                </div>
+                <div class="admin-section">
+                    <h3>🔥 3. 경매 작동 시스템</h3>
+                    <div style="display:flex; flex-direction:column; gap:5px;">
+                        <button class="btn-shuffle" onclick="shufflePlayerPool()">🎲 매물 무작위 셔플</button>
+                        <button class="btn-start" onclick="triggerSequence()">⚡ 선택된 매물 카운트다운 시작</button>
+                    </div>
+                </div>
+                <div class="admin-section" style="display: flex; gap: 6px;">
+                    <button class="btn-danger" onclick="closeAuction()">🔨 낙찰 확정</button>
+                    <button style="background-color: #64748b; color:white;" onclick="failAuction()">❌ 유찰 처리</button>
+                </div>
+                <div class="admin-section">
+                    <h3>👑 남은 매물 즉시 강제 지정</h3>
+                    <div style="display: flex; gap: 6px; align-items: center;">
+                        <select id="force-target-director" style="background-color:#0f172a; color:white; border:1px solid #334155; padding:6px; border-radius:4px; font-size:12px; flex: 1; height: 30px;">
+                            <!-- 자바스크립트로 팀 목록이 동적으로 채워집니다 -->
+                        </select>
+                        <button class="btn-danger" style="background-color: #d97706; flex: 0 0 90px; height: 30px; font-size: 12px; padding: 0; line-height: 30px;" onclick="forceAssignPlayer()">👑 강제 지정</button>
+                    </div>
+                </div>
+                <div class="admin-section">
+                    <button class="btn-danger" style="background-color:#991b1b;" onclick="clearAllPlayersOnly()">⚠️ 등록된 전체 매물 삭제</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Director View -->
+    <div id="director-view" class="view-section">
+        <div class="nav-bar">
+            <button class="btn-home" onclick="goPage('')">🏠 메인 로비로 이동</button>
+            <span id="dir-panel-header-title" style="margin-left:15px; font-size:13px; font-weight:bold; color:#4ade80;">👥 팀장 전용 입찰 패널</span>
+        </div>
+        <div class="layout-container">
+            <div class="team-zone" id="dir-all-teams-list"></div>
+            <div class="auction-zone">
+                <div class="active-item-panel">
+                    <div class="active-item-avatar" id="dir-active-img" style="background-image:url('https://api.dicebear.com/7.x/bottts/svg?seed=ready')"></div>
+                    <div class="active-item-info">
+                        <span class="active-item-label">CURRENT AUCTION PLAYER</span>
+                        <span class="active-item-name" id="dir-active-name">대기 중</span>
+                    </div>
+                </div>
+                <div class="log-box" id="dir-log-box">------------- 다음 경매 대기중 -------------</div>
+                <div class="time-count" id="dir-timer-display">TIME COUNT | 15.00</div>
+
+                <div class="gosegu-bid-panel">
+                    <div class="gosegu-row-bg">💰 나의 잔여 포인트 | <span id="dir-my-points">0</span></div>
+                    <div class="gosegu-price-window" id="dir-highest-price">0</div>
+                    <div class="gosegu-btn-grid">
+                        <button onclick="dirAddPrice(5)">+5</button>
+                        <button onclick="dirAddPrice(10)">+10</button>
+                        <button onclick="dirAddPrice(50)">+50</button>
+                        <button onclick="dirAddPrice(100)">+100</button>
+                    </div>
+                    <div class="gosegu-submit-row">
+                        <input type="number" id="dir-custom-input" value="0">
+                        <button class="gosegu-btn-submit" style="background-color:#16a34a;" onclick="goseguSubmitBid('director')">입찰하기</button>
+                    </div>
+                </div>
+            </div>
+            <div class="list-zone">
+                <div class="list-section" style="flex: 2;">
+                    <h3>
+                        <span>📋 전체 등록 매물 리스트</span>
+                        <span style="font-size: 11px; color: #64748b;"></span>
+                    </h3>
+                    <div class="visual-grid" id="dir-player-list"></div>
+                </div>
+                <div class="list-section" style="flex: 1; min-height: 120px;">
+                    <h3>
+                        <span style="color: #ef4444;">❌ 유찰된 매물 목록</span>
+                        <span style="font-size: 11px; color: #64748b;"></span>
+                    </h3>
+                    <div class="visual-grid" id="dir-fail-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -408,14 +408,17 @@ async function selectPlayer(id) {
     if(!id) return; 
     db.selectedPlayerId = id; 
     
-    // 👇 선택한 선수의 정보를 찾아 activeItem(CURRENT AUCTION PLAYER)에 즉시 반영합니다.
+    // 선택한 선수의 정보를 activeItem에 즉시 반영
     const selected = (db.playerPool || []).find(p => p.id === id);
     if (selected) {
         db.activeItem = { name: selected.name, img: selected.img };
     }
     
+    // 💡 화면을 먼저 깔끔하게 즉시 갱신 (깜빡임 방지)
+    renderAllStatic();
+    
+    // 그 후 서버에 비동기 저장
     await fbPut(db); 
-    renderAllStatic(); 
 }
 
 async function recoverFailedPlayer(index) {

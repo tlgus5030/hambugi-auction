@@ -320,7 +320,7 @@ function renderAllStatic() {
                             </div>`;
                     } else {
                         sequenceHtml += `
-                            <div class="sequence-card ${isSel}" title="${p.name}">
+                            <div class="sequence-card ${isSel}" onclick="selectPlayer('${p.id}')" title="${p.name}">
                                 <div class="sequence-avatar" style="background-image:url('${p.img}')"></div>
                                 <div class="sequence-name">${nickname}</div>
                             </div>`;
@@ -404,7 +404,19 @@ async function deletePlayerFromPool(id, event) {
     await fbPut(db); renderAllStatic();
 }
 
-async function selectPlayer(id) { if(!id) return; db.selectedPlayerId = id; await fbPut(db); renderAllStatic(); }
+async function selectPlayer(id) { 
+    if(!id) return; 
+    db.selectedPlayerId = id; 
+    
+    // 👇 선택한 선수의 정보를 찾아 activeItem(CURRENT AUCTION PLAYER)에 즉시 반영합니다.
+    const selected = (db.playerPool || []).find(p => p.id === id);
+    if (selected) {
+        db.activeItem = { name: selected.name, img: selected.img };
+    }
+    
+    await fbPut(db); 
+    renderAllStatic(); 
+}
 
 async function recoverFailedPlayer(index) {
     if(!db.failPool || index < 0 || index >= db.failPool.length) return;

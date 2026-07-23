@@ -617,8 +617,8 @@ async function finishCurrentAuction() {
     db.logs.push({ txt: "------------- 다음 경매 대기중 -------------", cls: "log-divider" });
 
     // 5. 서버 저장 및 화면 갱신
-    await fbPut(db);
     renderAllStatic();
+    await fbPut(db);
 }
 
 function getAutoEmptySlot(directorKey) {

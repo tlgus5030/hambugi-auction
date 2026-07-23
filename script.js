@@ -589,8 +589,15 @@ async function autoFailAuction() {
 }
 
 async function finishCurrentAuction() {
-    db.playerPool = (db.playerPool || []).filter(p => p.id !== db.selectedPlayerId);
+    // 1. 현재 낙찰/유찰된 선수의 이름과 ID를 모두 기준으로 매물 풀에서 확실하게 제거
+    const activeName = db.activeItem ? db.activeItem.name : "";
     
+    db.playerPool = (db.playerPool || []).filter(p => {
+        // ID가 같거나, 이름(닉네임)이 정확히 일치하면 리스트에서 제외
+        return p.id !== db.selectedPlayerId && p.name !== activeName;
+    });
+    
+    // 2. 다음 매물 세팅
     if(db.playerPool.length > 0) {
         db.selectedPlayerId = db.playerPool[0].id;
         db.activeItem = { name: db.playerPool[0].name, img: db.playerPool[0].img };
@@ -599,14 +606,17 @@ async function finishCurrentAuction() {
         db.activeItem = { name: "대기 중", img: "https://api.dicebear.com/7.x/bottts/svg?seed=ready" };
     }
     
+    // 3. 상태 초기화
     db.currentPrice = 0; 
     db.currentBidder = "-"; 
     db.timerEndsAt = 0; 
     db.isTimerRunning = false;
     
+    // 4. 다음 경매 대기중 메시지 추가
     if(!db.logs) db.logs = [];
     db.logs.push({ txt: "------------- 다음 경매 대기중 -------------", cls: "log-divider" });
 
+    // 5. 서버 저장 및 화면 갱신
     await fbPut(db);
     renderAllStatic();
 }

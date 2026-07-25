@@ -320,7 +320,7 @@ function renderAllStatic() {
                             </div>`;
                     } else {
                         sequenceHtml += `
-                            <div class="sequence-card ${isSel}" onclick="selectPlayer('${p.id}')" title="${p.name}">
+                            <div class="sequence-card ${isSel}" title="${p.name}">
                                 <div class="sequence-avatar" style="background-image:url('${p.img}')"></div>
                                 <div class="sequence-name">${nickname}</div>
                             </div>`;
@@ -408,16 +408,12 @@ async function selectPlayer(id) {
     if(!id) return; 
     db.selectedPlayerId = id; 
     
-    // 선택한 선수의 정보를 activeItem에 즉시 반영
     const selected = (db.playerPool || []).find(p => p.id === id);
     if (selected) {
         db.activeItem = { name: selected.name, img: selected.img };
     }
     
-    // 💡 화면을 먼저 깔끔하게 즉시 갱신 (깜빡임 방지)
     renderAllStatic();
-    
-    // 그 후 서버에 비동기 저장
     await fbPut(db); 
 }
 
@@ -527,8 +523,9 @@ async function closeAuction() {
     
     const nickName = db.activeItem.name.split('/')[0].trim();
     playTone('success');
-    pushLog(`🎉 [낙찰] ${db.directors[db.currentBidder].name} 팀 -> ${nickName} 영입! (${db.currentPrice}P)`, "log-start");
-    finishCurrentAuction();
+    db.logs.push({ txt: `🎉 [낙찰] ${db.directors[db.currentBidder].name} 팀 -> ${nickName} 영입! (${db.currentPrice}P)`, cls: "log-start" });
+    
+    await finishCurrentAuction();
 }
 
 async function failAuction() {
@@ -536,7 +533,7 @@ async function failAuction() {
     
     const nickName = db.activeItem.name.split('/')[0].trim();
     playTone('fail');
-    pushLog(`❌ ${nickName} 선수가 유찰되었습니다.`, "log-fail");
+    db.logs.push({ txt: `❌ ${nickName} 선수가 유찰되었습니다.`, cls: "log-fail" });
     
     if(!db.failPool) db.failPool = [];
     db.failPool.push({ 
@@ -545,20 +542,20 @@ async function failAuction() {
         img: db.activeItem.img 
     });
     
-    finishCurrentAuction();
+    await finishCurrentAuction();
 }
 
 async function autoCloseAuction() {
     if(!db.activeItem || db.activeItem.name === "대기 중") return;
     if(db.currentBidder === "-") {
-        autoFailAuction();
+        await autoFailAuction();
         return;
     }
     
     const slot = getAutoEmptySlot(db.currentBidder);
     if(!slot) {
-        pushLog(`⚠️ [낙찰 실패] ${db.directors[db.currentBidder].name} 팀의 스쿼드가 꽉 차서 유찰 처리됩니다.`, "log-fail");
-        autoFailAuction();
+        db.logs.push({ txt: `⚠️ [낙찰 실패] ${db.directors[db.currentBidder].name} 팀의 스쿼드가 꽉 차서 유찰 처리됩니다.`, cls: "log-fail" });
+        await autoFailAuction();
         return;
     }
 
@@ -567,8 +564,9 @@ async function autoCloseAuction() {
     
     const nickName = db.activeItem.name.split('/')[0].trim();
     playTone('success');
-    pushLog(`🎉 [낙찰] ${db.directors[db.currentBidder].name} 팀 -> ${nickName} 영입! (${db.currentPrice}P)`, "log-start");
-    finishCurrentAuction();
+    db.logs.push({ txt: `🎉 [낙찰] ${db.directors[db.currentBidder].name} 팀 -> ${nickName} 영입! (${db.currentPrice}P)`, cls: "log-start" });
+    
+    await finishCurrentAuction();
 }
 
 async function autoFailAuction() {
@@ -576,7 +574,7 @@ async function autoFailAuction() {
     
     const nickName = db.activeItem.name.split('/')[0].trim();
     playTone('fail');
-    pushLog(`❌ [시간 종료] ${nickName} 선수가 유찰되었습니다.`, "log-fail");
+    db.logs.push({ txt: `❌ [시간 종료] ${nickName} 선수가 유찰되었습니다.`, cls: "log-fail" });
     
     if(!db.failPool) db.failPool = [];
     db.failPool.push({ 
@@ -585,38 +583,44 @@ async function autoFailAuction() {
         img: db.activeItem.img 
     });
     
-    finishCurrentAuction();
+    await finishCurrentAuction();
 }
 
 async function finishCurrentAuction() {
-    // 1. 현재 낙찰/유찰된 선수의 이름과 ID를 모두 기준으로 매물 풀에서 확실하게 제거
-    const activeName = db.activeItem ? db.activeItem.name : "";
-    
-    db.playerPool = (db.playerPool || []).filter(p => {
-        // ID가 같거나, 이름(닉네임)이 정확히 일치하면 리스트에서 제외
-        return p.id !== db.selectedPlayerId && p.name !== activeName;
-    });
-    
-    // 2. 다음 매물 세팅
-    if(db.playerPool.length > 0) {
-        db.selectedPlayerId = db.playerPool[0].id;
-        db.activeItem = { name: db.playerPool[0].name, img: db.playerPool[0].img };
-    } else {
-        db.selectedPlayerId = "";
-        db.activeItem = { name: "대기 중", img: "https://api.dicebear.com/7.x/bottts/svg?seed=ready" };
+    const activeName = db.activeItem ? db.activeItem.name.trim() : "";
+    const activeId = db.selectedPlayerId;
+
+    if (db.playerPool && db.playerPool.length > 0) {
+        db.playerPool = db.playerPool.filter(p => {
+            const pName = p.name ? p.name.trim() : "";
+            const isTargetId = (activeId && p.id === activeId);
+            const isTargetName = (activeName && (pName === activeName || pName.split('/')[0].trim() === activeName.split('/')[0].trim()));
+            return !(isTargetId || isTargetName);
+        });
     }
     
-    // 3. 상태 초기화
+    if(db.playerPool && db.playerPool.length > 0) {
+        db.selectedPlayerId = db.playerPool[0].id;
+        db.activeItem = { 
+            name: db.playerPool[0].name, 
+            img: db.playerPool[0].img 
+        };
+    } else {
+        db.selectedPlayerId = "";
+        db.activeItem = { 
+            name: "대기 중", 
+            img: "https://api.dicebear.com/7.x/bottts/svg?seed=ready" 
+        };
+    }
+    
     db.currentPrice = 0; 
     db.currentBidder = "-"; 
     db.timerEndsAt = 0; 
     db.isTimerRunning = false;
     
-    // 4. 다음 경매 대기중 메시지 추가
     if(!db.logs) db.logs = [];
     db.logs.push({ txt: "------------- 다음 경매 대기중 -------------", cls: "log-divider" });
 
-    // 5. 서버 저장 및 화면 갱신
     renderAllStatic();
     await fbPut(db);
 }
